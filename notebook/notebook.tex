@@ -1,0 +1,313 @@
+\documentclass[twoside,11pt]{article}
+
+% Any additional packages needed should be included after jmlr2e.
+% Note that jmlr2e.sty includes epsfig, amssymb, natbib and graphicx,
+% and defines many common macros, such as 'proof' and 'example'.
+%
+% It also sets the bibliographystyle to plainnat; for more information on
+% natbib citation styles, see the natbib documentation, a copy of which
+% is archived at http://www.jmlr.org/format/natbib.pdf
+
+\usepackage{jmlr2e}
+
+\usepackage{listings}
+%\usepackage{algorithm}
+%\usepackage{algorithmic}
+%\usepackage{amssymb,amsmath}
+%\usepackage{graphicx}
+\usepackage{preamble}
+%\usepackage{natbib}
+%%%% REMEMBER ME!
+\usepackage[draft]{hyperref}
+%\usepackage{hyperref}
+\usepackage{color}
+\usepackage{url}
+%\usepackage{wasysym}
+%\usepackage{subfigure}
+%\usepackage{tabularx}
+%\usepackage{booktabs}
+%\usepackage{bm}
+%\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+\hypersetup{ %
+    pdftitle={},
+    pdfauthor={},
+    pdfsubject={},
+    pdfkeywords={},
+    pdfborder=0 0 0,
+    pdfpagemode=UseNone,
+    colorlinks=true,
+    linkcolor=mydarkblue,
+    citecolor=mydarkblue,
+    filecolor=mydarkblue,
+    urlcolor=mydarkblue,
+    pdfview=FitH}
+
+\setlength{\marginparwidth}{0.6in}
+\input{include/commenting.tex}
+
+%% For submission, make all render blank.
+%\renewcommand{\LATER}[1]{}
+%\renewcommand{\fLATER}[1]{}
+%\renewcommand{\TBD}[1]{}
+%\renewcommand{\fTBD}[1]{}
+%\renewcommand{\PROBLEM}[1]{}
+%\renewcommand{\fPROBLEM}[1]{}
+%\renewcommand{\NA}[1]{#1}  %% Note, NA's pass through!
+
+% Definitions of handy macros can go here
+
+% Heading arguments are {volume}{year}{pages}{submitted}{published}{author-full-names}
+
+%\jmlrheading{Volume}{Year}{Pages}{Submitted}{Published}{James Robert Lloyd}
+
+% Short headings should be running head and authors last names
+
+\ShortHeadings{Parish records}{Lloyd et alia}
+\firstpageno{1}
+
+\begin{document}
+
+\lstset{language=Lisp,basicstyle=\ttfamily\footnotesize} 
+
+\title{Variations on the IRM: Parish Records}
+
+\author{\name James Robert Lloyd \email jrl44@cam.ac.uk \\
+       \addr Department of Engineering\\
+       University of Cambridge\\
+       \AND
+       \name Others\dots}
+
+\editor{Editor}
+
+\maketitle
+
+\begin{abstract}
+Notes collected whilst testing the latest version of Church.
+\end{abstract}
+
+%\begin{keywords}
+%  Probabilistic Programming, Church, Relational Data
+%\end{keywords}
+
+\section{Introduction}
+
+The latest version of Church (called Venture) has many rough edges.
+All results must therefore be taken with a pinch of salt.
+
+Venture relies on computationally efficient but statistically inefficient (as far as I understand) Metropolis--Hastings (MH) based MCMC.
+Consequently, great care must be taken over collecting enough samples and averaging over restarts.
+Also, absolute numbers of samples are likely to be incomparable between models; I will use measures of effective sample size.
+
+\section{Multiplicative IRM 20-Feb-2013}
+
+To test the Venture engine and familiarise myself, I wrote a basic version of the IRM \citep{Kemp2006} defined as follows.
+%
+\begin{lstlisting}[frame=single]
+(ASSUME alpha (uniform-continuous 0.0001 2.0))
+(ASSUME cluster-crp (CRP/make alpha))
+(ASSUME node->class (mem (lambda (node) (cluster-crp))))
+(ASSUME classes->parameters (mem (lambda (class1 class2) (beta 0.5 0.5)))) 
+(ASSUME p-friends 
+  (lambda (node1 node2) (classes->parameters (node->class node1) 
+                                             (node->class node2) ) )) 
+\end{lstlisting}
+%
+\ie CRP distributed node classes and beta distributed class interaction probabilities.
+Note this is an asymmetric version of the IRM (\eg suitable for directed graphs); a symmetric version is simple to code but requires implementing minimum and maximum functions.
+These are not yet defined by the language and user defined versions may be very slow.
+Fot the moment I am doubling the data whenever it is symmetric.
+
+Due to some temporary language limitations, I experimented with the only more complex model that could be written sensibly; a multiplicative ensemble of IRMs.
+Specifically, I independently repeated the generative process above $D$ times, taking the product of the link probabilities to give the final link probability.
+I performed 5 fold cross validation on a high school social network data set (90 nodes, see \eg \cite{Hoff2007a}), computing the AUC of the predictions and the average effective sample size of the predictions (using the batch means method described in \cite{thompson2010comparison}).
+500 burn-in and 1000 samples were aimed for, with 100 intermediate MH steps per query to Venture.
+Computation time was limited to 30 minutes for both burn in and sampling; the data below shows that this maximum was reached in all but one experiment.
+I also include results from a MATLAB implementation (slightly different setup of parameters but quite similar) which I ran for 50 burn in and 100 samples with 5 intermediate gibbs updates per sample.
+Raw results are as follows:
+%
+\begin{lstlisting}
+D = 1, fold = 1, ess = 72, AUC = 0.682, Runtime = 3604
+D = 1, fold = 2, ess = 61, AUC = 0.688, Runtime = 3604
+D = 1, fold = 3, ess = 53, AUC = 0.743, Runtime = 3607
+D = 1, fold = 4, ess = 64, AUC = 0.785, Runtime = 3607
+D = 1, fold = 5, ess = 68, AUC = 0.648, Runtime = 3605
+D = 2, fold = 1, ess = 56, AUC = 0.745, Runtime = 3434
+D = 2, fold = 2, ess = 52, AUC = 0.769, Runtime = 3607
+D = 2, fold = 3, ess = 52, AUC = 0.767, Runtime = 3607
+D = 2, fold = 4, ess = 87, AUC = 0.677, Runtime = 3607
+D = 2, fold = 5, ess = 58, AUC = 0.725, Runtime = 3606
+D = 3, fold = 1, ess = 54, AUC = 0.796, Runtime = 3607
+D = 3, fold = 2, ess = 60, AUC = 0.791, Runtime = 3607
+D = 3, fold = 3, ess = 61, AUC = 0.693, Runtime = 3609
+D = 3, fold = 4, ess = 65, AUC = 0.748, Runtime = 3608
+D = 3, fold = 5, ess = 62, AUC = 0.714, Runtime = 3607
+
+MATLAB fold = 1,           AUC = 0.76,  Runtime = < minute
+MATLAB fold = 2,           AUC = 0.75,  Runtime = < minute
+MATLAB fold = 3,           AUC = 0.81,  Runtime = < minute
+MATLAB fold = 4,           AUC = 0.79,  Runtime = < minute
+MATLAB fold = 5,           AUC = 0.79,  Runtime = < minute
+\end{lstlisting}
+%
+Averaging over folds, we get
+%
+\begin{lstlisting}
+D = 1, ess = 64, AUC = 0.710
+D = 2, ess = 61, AUC = 0.737
+D = 3, ess = 60, AUC = 0.749
+
+MATLAB           AUC = 0.780
+\end{lstlisting}
+%
+
+\subsection{Conclusions}
+
+These are reasonable AUCs but there is high variance and room for improvement compared to the MATLAB implementation.
+The runtime figures are slightly unfair to Venture (low end single core compared to high end hex core) but the difference in efficieny is at least an order of magnitude.
+The variance of the raw AUCs suggests that we need much more averaging to draw strong conclusions from empirical data.
+The small effective sample sizes suggest that autocorrelation is very high and number of samples (before adjustment for autocorrelation) is likely to only be a measure of memory usage.
+
+There is the slightest hint of a trend in the AUCs; certainly worth investigating.
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Recreate performance of MATLAB sampler with Venture - how much computing power is required?
+\item Extend to higher degree products
+\item Create small synthetic/real data sets to make testing more robust
+\item Add random restarts - how many / what ratios?
+\item Experiment with adding randomness to parameters - is it beneficial or does the sampler get stuck?
+\end{itemize}
+
+\section{Additive IRM 21-Feb-2013}
+
+Next, an additive IRM.
+%
+\begin{lstlisting}[frame=single]
+(ASSUME alpha (uniform-continuous 0.0001 2.0))
+(ASSUME cluster-crp (CRP/make alpha))
+(ASSUME node->class (mem (lambda (node) (cluster-crp))))
+(ASSUME classes->weights (mem (lambda (class1 class2) (normal 0 1))))
+(ASSUME bias (normal 0 2))
+(ASSUME p-friends 
+  (lambda (node1 node2) 
+    (logistic (+ bias (classes->weights (node->class node1) 
+                                        (node->class node2) ))) ) ) 
+\end{lstlisting}
+%
+\ie we have replaced each beta with thes sum of a bias and Gaussian passed through a logistic function.
+
+This can become additive by extending the sum within the logistic to contain independent terms with the same form of generative process.
+The results are as follows:
+%
+\begin{lstlisting}
+D = 1, fold = 1, ess = 54, AUC = 0.663739, Runtime = 3612
+D = 1, fold = 2, ess = 42, AUC = 0.722340, Runtime = 3609
+D = 1, fold = 3, ess = 23, AUC = 0.733478, Runtime = 3609
+D = 1, fold = 4, ess = 63, AUC = 0.792883, Runtime = 3612
+D = 1, fold = 5, ess = 42, AUC = 0.744149, Runtime = 3614
+D = 2, fold = 1, ess = 35, AUC = 0.771422, Runtime = 3614
+D = 2, fold = 2, ess = 32, AUC = 0.739856, Runtime = 3611
+D = 2, fold = 3, ess = 32, AUC = 0.749786, Runtime = 3610
+D = 2, fold = 4, ess = 31, AUC = 0.760541, Runtime = 3611
+D = 2, fold = 5, ess = 31, AUC = 0.685581, Runtime = 3609
+D = 3, fold = 1, ess = 28, AUC = 0.769533, Runtime = 3612
+D = 3, fold = 2, ess = 31, AUC = 0.709673, Runtime = 3614
+D = 3, fold = 3, ess = 30, AUC = 0.754313, Runtime = 3612
+D = 3, fold = 4, ess = 35, AUC = 0.773020, Runtime = 3615
+D = 3, fold = 5, ess = 31, AUC = 0.706993, Runtime = 3607
+\end{lstlisting}
+%
+Averaging over folds:%
+\begin{lstlisting}
+D = 1, ess = 45, AUC = 0.731
+D = 2, ess = 32, AUC = 0.741
+D = 3, ess = 31, AUC = 0.743
+\end{lstlisting}
+%
+\subsection{Conclusions}
+
+Again, there is a slight hint of a trend but randomness dominates - restarts definitely required.
+This model is harder (or rather slower) to sample from as evidenced by the reduced effective sample sizes.
+The effective sample sizes are very small  - a lot of computing power will be required.
+
+\subsection{Next steps}
+
+Same conclusions as for product of IRMs.
+
+\section{Parallelised random restarts for basic IRM 21-Feb-2013}
+
+The model
+%
+\begin{lstlisting}[frame=single]
+(ASSUME cluster-crp (CRP/make 1))
+(ASSUME node->class (mem (lambda (node) (cluster-crp))))
+(ASSUME classes->parameters (mem (lambda (class1 class2) (beta 0.5 0.5)))) 
+(ASSUME p-friends 
+  (lambda (node1 node2) (classes->parameters (node->class node1) 
+                                             (node->class node2) ) )) 
+\end{lstlisting}
+%
+\ie simplified CRP with constant concentration parameter.
+This is trying to be more like the MATLAB IRM implementation; to recreate the setup fully I would need to set the beta parameters to 0.1 but this currently causes numerical issues (probably - either way it crashes) in Venture.
+Half the computational budget was used for burn in, half for sampling.
+The numerical results for the first fold of the highschool data set are as follows:
+%
+\begin{lstlisting}
+D = 1, fold = 1, restart =  1, ess = 38, AUC = 0.683, Runtime = 1804
+D = 1, fold = 1, restart =  2, ess = 41, AUC = 0.817, Runtime = 1805
+D = 1, fold = 1, restart =  3, ess = 38, AUC = 0.739, Runtime = 1806
+D = 1, fold = 1, restart =  4, ess = 42, AUC = 0.651, Runtime = 1806
+D = 1, fold = 1, restart =  5, ess = 42, AUC = 0.780, Runtime = 1806
+D = 1, fold = 1, restart =  6, ess = 41, AUC = 0.668, Runtime = 1803
+D = 1, fold = 1, restart =  7, ess = 35, AUC = 0.781, Runtime = 1805
+D = 1, fold = 1, restart =  8, ess = 45, AUC = 0.757, Runtime = 1805
+D = 1, fold = 1, restart =  9, ess = 39, AUC = 0.781, Runtime = 1806
+D = 1, fold = 1, restart = 10, ess = 33, AUC = 0.811, Runtime = 1805
+Total cpu time = 5.02 hours
+Local time elapsed = 0.65 hours
+D = 1, fold = 1, restarts = 10, ess sum = 399, AUC = 0.795589
+\end{lstlisting}
+%
+\ie brute force can equal the performance of a hand crafted sampler!
+
+Below are results when the computational budget was halved.
+Clearly some of the chains have failed to burn in but overall performance was still good.
+%
+\begin{lstlisting}
+D = 1, fold = 1, restart =  1, ess = 28, AUC = 0.756, Runtime = 904
+D = 1, fold = 1, restart =  2, ess = 18, AUC = 0.476, Runtime = 903
+D = 1, fold = 1, restart =  3, ess = 25, AUC = 0.795, Runtime = 904
+D = 1, fold = 1, restart =  4, ess = 28, AUC = 0.694, Runtime = 904
+D = 1, fold = 1, restart =  5, ess = 35, AUC = 0.773, Runtime = 903
+D = 1, fold = 1, restart =  6, ess = 23, AUC = 0.772, Runtime = 905
+D = 1, fold = 1, restart =  7, ess = 28, AUC = 0.805, Runtime = 903
+D = 1, fold = 1, restart =  8, ess = 28, AUC = 0.591, Runtime = 903
+D = 1, fold = 1, restart =  9, ess = 24, AUC = 0.491, Runtime = 903
+D = 1, fold = 1, restart = 10, ess = 23, AUC = 0.778, Runtime = 904
+Total cpu time = 2.51 hours
+Local time elapsed = 0.30 hours
+D = 1, fold = 1, restarts = 10, ess = 265, AUC = 0.782614
+\end{lstlisting}
+%
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Run other data folds to be sure of the result
+\item Try to reduce total computation time - what is the `best' number of random restarts
+\item Produce stats on memory usage and data transfer - need to be careful! 
+\item Start costing the use of the cloud and make an arrangement with Venture
+\end{itemize}
+
+\newpage
+
+%\appendix
+%\section*{Appendix A.}
+%Appendix
+
+\vskip 0.2in
+\bibliography{library}
+
+\end{document}
