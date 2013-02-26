@@ -306,35 +306,35 @@ D = 1, fold = 1, restarts = 10, ess = 265, AUC = 0.782614
 Extending the experiment above to the multiplicative IRM we get the following results:
 %
 \begin{lstlisting}
-D = 2, fold = 1, restart =  1, ess = 44.374428, AUC = 0.796097, Runtime = 1803.890000
-D = 2, fold = 1, restart =  2, ess = 97.636204, AUC = 0.790949, Runtime = 1805.020000
-D = 2, fold = 1, restart =  3, ess = 42.554435, AUC = 0.749628, Runtime = 1805.590000
-D = 2, fold = 1, restart =  4, ess = 52.798197, AUC = 0.689063, Runtime = 1805.280000
-D = 2, fold = 1, restart =  5, ess = 42.821664, AUC = 0.779580, Runtime = 1804.790000
-D = 2, fold = 1, restart =  6, ess = 49.170633, AUC = 0.760761, Runtime = 1804.190000
-D = 2, fold = 1, restart =  7, ess = 41.553509, AUC = 0.736264, Runtime = 1804.920000
-D = 2, fold = 1, restart =  8, ess = 99.139866, AUC = 0.753926, Runtime = 1804.870000
-D = 2, fold = 1, restart =  9, ess = 48.023952, AUC = 0.753135, Runtime = 1804.330000
-D = 2, fold = 1, restart = 10, ess = 41.156168, AUC = 0.780407, Runtime = 1804.510000
-Total cpu time = 5.013164 hours
-Local time elapsed = 0.708208 hours
-D = 2, fold = 1, restarts = 10, ess = 559.229056, AUC = 0.813723
+D = 2, fold = 1, restart =  1, ess = 44, AUC = 0.796, Runtime = 1803
+D = 2, fold = 1, restart =  2, ess = 97, AUC = 0.790, Runtime = 1805
+D = 2, fold = 1, restart =  3, ess = 42, AUC = 0.749, Runtime = 1805
+D = 2, fold = 1, restart =  4, ess = 52, AUC = 0.689, Runtime = 1805
+D = 2, fold = 1, restart =  5, ess = 42, AUC = 0.779, Runtime = 1804
+D = 2, fold = 1, restart =  6, ess = 49, AUC = 0.760, Runtime = 1804
+D = 2, fold = 1, restart =  7, ess = 41, AUC = 0.736, Runtime = 1804
+D = 2, fold = 1, restart =  8, ess = 99, AUC = 0.753, Runtime = 1804
+D = 2, fold = 1, restart =  9, ess = 48, AUC = 0.753, Runtime = 1804
+D = 2, fold = 1, restart = 10, ess = 41, AUC = 0.780, Runtime = 1804
+Total cpu time = 5.01 hours
+Local time elapsed = 0.70 hours
+D = 2, fold = 1, restarts = 10, ess = 559, AUC = 0.814
 \end{lstlisting}
 %
 \begin{lstlisting}
-D = 3, fold = 1, restart =  1, ess = 35.227560, AUC = 0.808552, Runtime = 723.770000
-D = 3, fold = 1, restart =  2, ess = 24.388479, AUC = 0.701920, Runtime = 726.510000
-D = 3, fold = 1, restart =  3, ess = 23.706998, AUC = 0.651803, Runtime = 725.260000
-D = 3, fold = 1, restart =  4, ess = 26.626041, AUC = 0.663939, Runtime = 725.190000
-D = 3, fold = 1, restart =  5, ess = 33.780084, AUC = 0.658532, Runtime = 725.280000
-D = 3, fold = 1, restart =  6, ess = 28.147561, AUC = 0.688402, Runtime = 724.440000
-D = 3, fold = 1, restart =  7, ess = 26.728510, AUC = 0.691093, Runtime = 725.890000
-D = 3, fold = 1, restart =  8, ess = 26.981969, AUC = 0.674990, Runtime = 724.730000
-D = 3, fold = 1, restart =  9, ess = 26.622211, AUC = 0.649501, Runtime = 724.750000
-D = 3, fold = 1, restart = 10, ess = 29.216541, AUC = 0.725697, Runtime = 725.810000
-Total cpu time = 2.014342 hours
-Local time elapsed = 0.239442 hours
-D = 3, fold = 1, restarts = 10, ess = 281.425956, AUC = 0.770631
+D = 3, fold = 1, restart =  1, ess = 35, AUC = 0.808, Runtime = 723
+D = 3, fold = 1, restart =  2, ess = 24, AUC = 0.701, Runtime = 726
+D = 3, fold = 1, restart =  3, ess = 23, AUC = 0.651, Runtime = 725
+D = 3, fold = 1, restart =  4, ess = 26, AUC = 0.663, Runtime = 725
+D = 3, fold = 1, restart =  5, ess = 33, AUC = 0.658, Runtime = 725
+D = 3, fold = 1, restart =  6, ess = 28, AUC = 0.688, Runtime = 724
+D = 3, fold = 1, restart =  7, ess = 26, AUC = 0.691, Runtime = 725
+D = 3, fold = 1, restart =  8, ess = 26, AUC = 0.674, Runtime = 724
+D = 3, fold = 1, restart =  9, ess = 26, AUC = 0.649, Runtime = 724
+D = 3, fold = 1, restart = 10, ess = 29, AUC = 0.725, Runtime = 725
+Total cpu time = 2.01 hours
+Local time elapsed = 0.23 hours
+D = 3, fold = 1, restarts = 10, ess = 281, AUC = 0.771
 \end{lstlisting}
 %
 It appears the twice multiplicative model is easier to sample (higher ess) and achieves a higher AUC.
@@ -343,19 +343,19 @@ Trying to offset the increase in performance appears not to have worked.
 So:
 %
 \begin{lstlisting}
-D = 3, fold = 1, restart =  1, ess = 38.600095, AUC = 0.619796, Runtime = 1805.540000
-D = 3, fold = 1, restart =  2, ess = 42.793407, AUC = 0.758471, Runtime = 1805.160000
-D = 3, fold = 1, restart =  3, ess = 42.383739, AUC = 0.775708, Runtime = 1804.970000
-D = 3, fold = 1, restart =  4, ess = 59.323596, AUC = 0.672133, Runtime = 1806.270000
-D = 3, fold = 1, restart =  5, ess = 52.111719, AUC = 0.700125, Runtime = 1804.950000
-D = 3, fold = 1, restart =  6, ess = 43.122824, AUC = 0.779238, Runtime = 1807.040000
-D = 3, fold = 1, restart =  7, ess = 42.976750, AUC = 0.649076, Runtime = 1805.910000
-D = 3, fold = 1, restart =  8, ess = 46.250952, AUC = 0.653220, Runtime = 1805.040000
-D = 3, fold = 1, restart =  9, ess = 48.771307, AUC = 0.710621, Runtime = 1805.330000
-D = 3, fold = 1, restart = 10, ess = 41.052395, AUC = 0.694057, Runtime = 1805.290000
-Total cpu time = 5.015417 hours
-Local time elapsed = 0.509969 hours
-D = 3, fold = 1, restarts = 10, ess = 457.386785, AUC = 0.768695
+D = 3, fold = 1, restart =  1, ess = 38, AUC = 0.619, Runtime = 1805
+D = 3, fold = 1, restart =  2, ess = 42, AUC = 0.758, Runtime = 1805
+D = 3, fold = 1, restart =  3, ess = 42, AUC = 0.775, Runtime = 1804
+D = 3, fold = 1, restart =  4, ess = 59, AUC = 0.672, Runtime = 1806
+D = 3, fold = 1, restart =  5, ess = 52, AUC = 0.700, Runtime = 1804
+D = 3, fold = 1, restart =  6, ess = 43, AUC = 0.779, Runtime = 1807
+D = 3, fold = 1, restart =  7, ess = 42, AUC = 0.649, Runtime = 1805
+D = 3, fold = 1, restart =  8, ess = 46, AUC = 0.653, Runtime = 1805
+D = 3, fold = 1, restart =  9, ess = 48, AUC = 0.710, Runtime = 1805
+D = 3, fold = 1, restart = 10, ess = 41, AUC = 0.694, Runtime = 1805
+Total cpu time = 5.01 hours
+Local time elapsed = 0.50 hours
+D = 3, fold = 1, restarts = 10, ess = 457, AUC = 0.769
 \end{lstlisting}
 %
 Suggesting that the reduced performance is true.
