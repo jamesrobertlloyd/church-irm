@@ -72,7 +72,7 @@ def IRM(fold=1,burn=50,n_samples=100,mh_iter=10,verbose=True):
     # Collect samples
     #mcmc_output = sample.collect_n_es(MyRIPL, n=n_samples, mh_iter=mh_iter, ids = [an_id for (an_id, _) in missing_links], min_samples=n_samples*2, max_runtime=300, verbose=verbose)
     #mcmc_output = sample.collect_n_samples(MyRIPL, n=n_samples, mh_iter=mh_iter, ids = [an_id for (an_id, _) in missing_links], max_runtime=300, verbose=verbose)
-    mcmc_output = sample.collect_n_samples(MyRIPL, n=n_samples, initial_mh_iter=mh_iter, ids = [an_id for (an_id, _) in missing_links], max_runtime=60, verbose=verbose)
+    mcmc_output = sample.collect_n_samples_before_timeout(MyRIPL, n=n_samples, initial_mh_iter=mh_iter, ids = [an_id for (an_id, _) in missing_links], max_runtime=60, verbose=verbose)
     samples = mcmc_output['samples']
     sample_ess = mcmc_output['ess']
 
@@ -91,7 +91,7 @@ def IRM(fold=1,burn=50,n_samples=100,mh_iter=10,verbose=True):
     return {'truth' : truth, 'predictions' : predictions, 'samples' : samples, 'ess' : sample_ess, 'AUC' : AUC, 'runtime' : time.clock() - start, 'max_mem' : max_mem}
 
 fold = 1
-for n_samples in [100]:
+for n_samples in [500]:
     for mh_iter in [10]:
         data = IRM(fold=fold,burn=int(np.floor(n_samples/2)),n_samples=n_samples,mh_iter=mh_iter,verbose=True)
         print 'n = %d, iter = %d, ess = %2.0f, AUC = %0.3f, runtime = %f, mem = %fM' % (n_samples, mh_iter, data['ess'], data['AUC'], data['runtime'], data['max_mem'] / (1024 * 1024))

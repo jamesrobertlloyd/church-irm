@@ -8,28 +8,38 @@ from utils.memory import memory
 
 def collect_n_samples_before_timeout(RIPL, n, initial_mh_iter, ids, max_runtime=600, verbose=True):
     '''Alters the number of intermediate mh_iter to n samples in max_runtime'''
+    #### FIXME - Dangerous - thinning depends on the state! - need to do a trial run!
+    #### Maybe it does need linear regression to be awesome?
     #### TODO - start here
     samples = np.zeros((len(ids), 0))
     experiment_start = time.clock()
     start = time.clock()
     iteration = 0
-    mh_iter = intial_mh_iter
+    mh_iter = initial_mh_iter
     mh_sum = 0
     # For a maximum of n iterations
     for unused in range(n):
         if time.clock() - experiment_start < max_runtime:
             # Sample
             iteration += 1
-            if iteration > 10:
+            if (iteration > 10) and (iteration < n):
                 # A few samples have been collected, adjust mh_iter to finish on time
                 #### TODO - a filtering approach would be more adaptive
                 now = time.clock()
                 time_elapsed = now - start
                 time_remaining = max_runtime - time_elapsed
-                time_per_mh_iter = mh_sum / time_elapsed
+                time_per_mh_iter = time_elapsed / mh_sum
                 samples_remaining = n - iteration
                 time_remaining_per_sample = time_remaining / samples_remaining
                 mh_iter = max(1, int(round(time_remaining_per_sample / time_per_mh_iter)))
+                if verbose:
+                    print 'Time elapsed  ', time_elapsed
+                    print 'Time remaining', time_remaining
+                    print 'Time per mh   ', time_per_mh_iter
+                    print 'Samples to go ', samples_remaining
+                    print 'Time per samp.', time_remaining
+                    print 'Remaining per.', time_remaining_per_sample
+                    print 'mh_iter', mh_iter
             RIPL.infer(mh_iter)
             mh_sum += mh_iter
             if verbose:
