@@ -65,9 +65,9 @@ def IRM(fold=1,burn=50,n_samples=100,mh_iter=10,verbose=True):
         truth.append(int(v))
         missing_links.append(MyRIPL.predict(parse('(p-friends %d %d)' % (i, j))))
 
-    for i in range(100):
+    for i in range(10, 501, 10):
         start_iter = time.clock()
-        MyRIPL.infer(i+1)
+        MyRIPL.infer(i)
         print time.clock() - start_iter
 
 fold = 1
