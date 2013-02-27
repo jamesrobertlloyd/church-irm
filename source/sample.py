@@ -1,9 +1,62 @@
-'''Utilities relating to effective sample size'''
+'''Utilities relating to collecting samples'''
 
 import time
 import numpy as np
 
 from utils import act
+from utils.memory import memory
+
+def collect_n_samples_before_timeout(RIPL, n, initial_mh_iter, ids, max_runtime=600, verbose=True):
+    '''Alters the number of intermediate mh_iter to n samples in max_runtime'''
+    #### TODO - start here
+    samples = np.zeros((len(ids), 0))
+    experiment_start = time.clock()
+    start = time.clock()
+    iteration = 0
+    mh_iter = intial_mh_iter
+    mh_sum = 0
+    # For a maximum of n iterations
+    for unused in range(n):
+        if time.clock() - experiment_start < max_runtime:
+            # Sample
+            iteration += 1
+            if iteration > 10:
+                # A few samples have been collected, adjust mh_iter to finish on time
+                #### TODO - a filtering approach would be more adaptive
+                now = time.clock()
+                time_elapsed = now - start
+                time_remaining = max_runtime - time_elapsed
+                time_per_mh_iter = mh_sum / time_elapsed
+                samples_remaining = n - iteration
+                time_remaining_per_sample = time_remaining / samples_remaining
+                mh_iter = max(1, int(round(time_remaining_per_sample / time_per_mh_iter)))
+            RIPL.infer(mh_iter)
+            mh_sum += mh_iter
+            if verbose:
+                print 'Iteration %d' % iteration
+            # Record sample
+            samples = np.column_stack([samples, [RIPL.report_value(an_id) for an_id in ids]])
+        else:
+            break
+    finish = time.clock()
+    time_per_sample = max(finish - start, 0.01) / iteration
+    if verbose:
+        print '%d iterations : %f seconds : %f seconds per iteration' % (iteration, finish - start, time_per_sample)
+    # Compute average ess
+    start = time.clock()
+    ess = np.mean([(samples.shape[1]) / act.batch_means(samples[i,:]) for i in range(samples.shape[0])])
+    if np.isnan(ess) or np.isinf(ess):
+        ess = 1
+    finish = time.clock()
+    time_to_compute_ess = max(finish - start, 0.01)
+    if verbose:
+        print 'ESS = %f : %f seconds' % (ess, time_to_compute_ess)
+    else:
+        #print 'ESS = %3.0f' % ess
+        pass
+    # Finished - return samples and ...TODO
+    max_mem = memory()
+    return {'samples' : samples, 'ess' : ess, 'max_mem' : max_mem}
 
 def collect_n_samples(RIPL, n, mh_iter, ids, max_runtime=600, verbose=True):
     '''Tries to collect n samples before timeout'''
