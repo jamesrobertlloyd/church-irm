@@ -102,7 +102,7 @@ def collect_n_samples(RIPL, n, mh_iter, ids, max_runtime=600, verbose=True):
         #print 'ESS = %3.0f' % ess
         pass
     # Finished - return samples and ...TODO
-    return {'samples' : samples, 'ess' : ess}
+    return {'samples' : samples, 'ess' : ess, 'runtime' : time.clock() - start}
 
 def collect_n_es(RIPL, n, mh_iter, ids, min_samples=None, max_runtime=600, verbose=True):
     '''Tries to collect enough samples of ids to have an ess > n'''

@@ -4,6 +4,9 @@ Objects to create standard models and sample from them
 
 class venture_model:
     '''For documentation purposes only'''
+        
+    def description(self):
+        return 'Base model class'
     
     def create_RIPL(self):
         raise Exception('Not implemented')
@@ -17,6 +20,9 @@ class product_IRM(venture_model):
         self.D = D
         self.alpha = alpha
         self.symmetric = symmetric
+        
+    def description(self):
+        return 'Product IRM : D=%d, alpha=%f, sym.=%s' % (D, alpha, symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
