@@ -2,6 +2,8 @@
 Objects to create standard models and sample from them
 '''
 
+from venture_engine_requirements import *
+
 class venture_model:
     '''For documentation purposes only'''
         
@@ -46,7 +48,7 @@ class product_IRM(venture_model):
         self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
        
     def observe_data(self, observations):
-        'Assumes triples of (i, j, v) for node i, node j and value v
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
         for (i,j,v) in observations:
             if v:
                 self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'true')

@@ -14,7 +14,7 @@ import numpy as np
 
 from venture_engine_requirements import *
 import cloud
-import picloud_venture_credentials
+execfile('picloud_venture_credentials.py')
 cloud_environment = 'venture-2-6'
 
 import models
@@ -31,7 +31,7 @@ def exp_param_defaults(exp_params):
                 'results_dir' : '../results/temp/',
                 'data_dirs' : ['../data/test/'],
                 'models' : [models.product_IRM],
-                'model_params' : [{D=1, alpha=1, symmetric=True}],
+                'model_params' : [{'D' : 1, 'alpha' : 1, 'symmetric' : True}],
                 'n_samples' : 1000,
                 'max_initial_run_time' : 120,
                 'max_burn_time' : 1800,
@@ -59,6 +59,7 @@ def network_cv_single_run(data, model_class, exp_params, **model_params):
     '''Function to be sent to picloud'''
     start = time.clock()
     model = model_class(**model_params) # Create model
+    model.create_RIPL()
     model.observe_data(data['observations']) # Observe data
     # Setup values to be predicted
     #### TODO - can this be sensibly encapsulated?
@@ -93,6 +94,7 @@ def network_cv_timing_run(data, model_class, exp_params, **model_params):
     '''Function to be sent to picloud'''
     start = time.clock()
     model = model_class(**model_params) # Create model
+    model.create_RIPL()
     model.observe_data(data['observations']) # Observe data
     # Setup values to be predicted
     #### TODO - can this be sensibly encapsulated?
