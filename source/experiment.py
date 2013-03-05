@@ -56,7 +56,7 @@ def exp_params_to_str(exp_params):
     
 def mat_files(data_dir):
     """Produces list of all .mat files in a directory - returns absolute paths"""
-    return [file_name for file_name in map(os.path.abspath, os.listdir(data_dir)) if file_name[-4:-1] == '.mat']
+    return [os.path.join(data_dir, file_name) for file_name in os.listdir(data_dir) if file_name[-4:] == '.mat']
     
 #### Experiment coordinators
 
@@ -155,7 +155,7 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
         pickle.dump(overall_results, save_file, -1)
     return overall_results
             
-def run_experiment_file(filename):
+def run_experiment_file(filename, verbose=True):
     '''Initiates a series of experiments specified by file'''
     
     # Load cloud credentials at entry point to prevent picloud attempting to load file
@@ -167,17 +167,26 @@ def run_experiment_file(filename):
     print exp_params_to_str(exp_params)
     
     # Create results directory if it doesn't exist.
-    if not os.path.isdir(exp_params.results_dir):
-        os.makedirs(exp_params.results_dir)
+    if not os.path.isdir(exp_params['results_dir']):
+        os.makedirs(exp_params['results_dir'])
         
     # Loop through data directories and model classes - starting threads
     threads = []
-    for data_dir in exp_params.data_dirs:
+    for data_dir in exp_params['data_dirs']:
+        if verbose:
+            print data_dir
         for data_file in mat_files(data_dir):
-            for model, model_params in zip(exp_params.models, exp_params.model_params):
+            if verbose:
+                print data_file
+            for model, model_params in zip(exp_params['models'], exp_params['model_params']):
                 if exp_params['type'] == 'network_cv':
+                    if verbose:
+                        print model
                     threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
                     threads[-1].start()
+                    
+    if verbose:
+        print 'Number of threads = %d' % len(threads)
             
     # Wait for threads to complete
     time.sleep(10) # Avoid race conditions
