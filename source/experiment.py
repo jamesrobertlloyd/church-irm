@@ -11,6 +11,7 @@ import threading
 import time
 import scipy.io
 import numpy as np
+import itertools
 
 from venture_engine_requirements import *
 import cloud
@@ -32,10 +33,13 @@ def exp_param_defaults(exp_params):
                 'models' : [models.product_IRM],
                 'model_params' : [{'D' : 1, 'alpha' : 1, 'symmetric' : True}],
                 'n_samples' : 1000,
-                'max_initial_run_time' : 120,
-                'max_burn_time' : 1800,
-                'max_sample_time' : 1800,
-                'intermediate_iter' : 10}
+                'max_initial_run_time' : 30,
+                'max_burn_time' : 30,
+                'max_sample_time' : 30,
+                'intermediate_iter' : 1,
+                'core_type' : 'c1',
+                'cores_per_job' : 1,
+                'n_restarts' : 5}
     # Iterate through default key-value pairs, setting all unset keys
     for key, value in defaults.iteritems():
         if not key in exp_params:
@@ -64,12 +68,12 @@ def network_cv_single_run(data, model_class, exp_params, model_params):
     # Burn in
     sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
                                          ids = missing_links, \
-                                         max_runtime=exp_params['max_burn_time'], verbose=True)
+                                         max_runtime=exp_params['max_burn_time'], verbose=False)
     # Collect samples
     max_memory = memory()
     mcmc_output = sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
                                                        ids = missing_links, \
-                                                       max_runtime=exp_params['max_sample_time'], verbose=True)
+                                                       max_runtime=exp_params['max_sample_time'], verbose=False)
     samples = mcmc_output['samples']
     n_samples = samples.shape[1]
     sample_ess = mcmc_output['ess']
@@ -98,13 +102,29 @@ def network_cv_timing_run(data, model_class, exp_params, model_params):
                                                       verbose=True) 
     return {'time_per_mh_iter' : mcmc_output['time_per_mh_iter'], 'runtime' : time.clock() - start, 'max_memory' : mcmc_output['max_memory']}
 
-def network_cv_fold(data_file, data_dir, model_class, exp_params, **model_params):
+def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     '''Performs a timing run and then sends random restarts to picloud'''
-    # Use the first file as a timing run
-    pass
-    # Loop over folds
-    # Wait for threads to finish
+    # Load data
+    data = scipy.io.loadmat(data_file, squeeze_me=True)
+    observed = list(zip(data['train_i'].flat, data['train_j'].flat, data['train_v'].flat))
+    missing  = list(zip(data['test_i'].flat,  data['test_j'].flat,  data['test_v'].flat))
+    data = {'observations' : observed, 'missing' : missing}
+    # Perform a timing run
+    job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
+                        _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+    time_per_mh_iter = cloud.result(job_id)['time_per_mh_iter']
+    # Map random restarts to picloud
+    exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * time_per_mh_iter))))
+    job_ids = cloud.map(network_cv_single_run, itertools.repeat(data, exp_params['n_restarts']), \
+                                               itertools.repeat(model_class, exp_params['n_restarts']), \
+                                               itertools.repeat(exp_params, exp_params['n_restarts']), \
+                                               itertools.repeat(model_params, exp_params['n_restarts']), \
+                                               _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
+                                               _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
     # Collate results and write to file
+    results = cloud.result(job_ids)
+    print results
+    #### FINISH ME
             
 def run_experiment_file(filename):
     '''Initiates a series of experiments specified by file'''
@@ -139,7 +159,8 @@ def run_experiment_file(filename):
                 if not thread.is_alive():
                     threads_finished[i] = True
         print '%d of %d threads complete' % (sum(threads_finished), len(threads_finished))
-        time.sleep(30)
+        if not all(threads_finished):
+            time.sleep(30)
     
     # Potentially call a post processing routine
     pass
