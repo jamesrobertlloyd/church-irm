@@ -66,7 +66,42 @@ def collect_n_samples_before_timeout(RIPL, n, initial_mh_iter, ids, max_runtime=
         pass
     # Finished - return samples and ...TODO
     max_mem = memory()
-    return {'samples' : samples, 'ess' : ess, 'max_mem' : max_mem}
+    return {'samples' : samples, 'ess' : ess, 'max_memory' : max_mem}
+    
+
+
+def estimate_mh_time(RIPL, n, initial_mh_iter, ids, max_runtime=600, verbose=True):
+    '''Uses a doubling strategy to try to estimate time per mh iter'''
+    experiment_start = time.clock()
+    start = time.clock()
+    samples = np.zeros((len(ids), 0)) # These are recorded as normal for timing purposes
+    iteration = 0
+    mh_iter = initial_mh_iter
+    mh_sum = 0
+    max_mem = memory()
+    while time.clock() - experiment_start < max_runtime:
+        iteration += 1
+        if verbose:
+            print 'Sample %d : trying %d steps' % (iteration, mh_iter) 
+        RIPL.infer(mh_iter)
+        mh_sum += mh_iter
+        samples = np.column_stack([samples, [RIPL.report_value(an_id) for an_id in ids]])
+        if time.clock() - experiment_start < 10:
+            # Not much time has passed - estimates will be unreliable - just double iterations
+            mh_iter = mh_iter * 2
+        else:
+            # Some time has passed - make sure that next sample will not take too long
+            now = time.clock()
+            time_elapsed = now - start
+            time_remaining = max_runtime - time_elapsed
+            time_per_mh_iter = time_elapsed / mh_sum
+            max_possible_iters = int(round(time_remaining / time_per_mh_iter))
+            mh_iter = min(max(1, max_possible_iters), mh_iter * 2)
+        max_mem = max(max_mem, memory())
+    finish = time.clock()
+    time_per_mh_iter = max(finish - start, 0.01) / mh_sum
+    max_mem = max(max_mem, memory())
+    return {'time_per_mh_iter' : time_per_mh_iter, 'max_memory' : max_mem}
 
 def collect_n_samples(RIPL, n, mh_iter, ids, max_runtime=600, verbose=True):
     '''Tries to collect n samples before timeout'''

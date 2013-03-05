@@ -28,7 +28,6 @@ class product_IRM(venture_model):
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
-        #### TODO - Does the import statement need to be here?
         import venture_engine
         self.RIPL = venture_engine
         self.RIPL.clear()
@@ -58,6 +57,16 @@ class product_IRM(venture_model):
                 self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'false')
                 if self.symmetric:
                     self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'false')
+                    
+    def set_predictions(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        truth = []
+        missing_links = []
+        for (i,j,v) in observations:
+            truth.append(int(v))
+            an_id = self.RIPL.predict(parse('(p-friends %d %d)' % (i, j)))[0]
+            missing_links.append(an_id)
+        return (truth, missing_links)
                     
 class additive_IRM(venture_model):
     pass

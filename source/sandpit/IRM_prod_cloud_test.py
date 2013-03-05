@@ -4,7 +4,7 @@ sys.path.append('../')
 
 from venture_engine_requirements import *
 import cloud
-import picloud_venture_credentials
+execfile('../picloud_venture_credentials.py')
 cloud_environment = 'venture-2-6'
 
 import scipy.io
@@ -22,7 +22,7 @@ max_runtime = 10 # In seconds - default 1800
 n_samples = 1000 # Target - max_runtime wins in a dispute
 mh_iter = 100 # Intermediate iterations between samples
 verbose = False
-local_computation = True # Test single threaded locally
+local_computation = False # Test single threaded locally
 
 repeats = 10 # Number of machines to map to
 job_kill_time = 60 # Minutes before jobs are killed - to prevent large bills!
@@ -30,8 +30,8 @@ machine_type = 'c1' # The cheapest!
 cores = 1 # Number of cores to string together - useful for high memory jobs
 
 # Load data
-data = scipy.io.loadmat("../../data/hs/hs_%dof5.mat" % fold, squeeze_me=True)
-#data = scipy.io.loadmat("../../data/irm_synth/irm_synth_20.mat", squeeze_me=True)
+#data = scipy.io.loadmat("../../data/hs/hs_%dof5.mat" % fold, squeeze_me=True)
+data = scipy.io.loadmat("../../data/irm_synth/irm_synth_20.mat", squeeze_me=True)
 observed = list(zip(data['train_i'].flat, data['train_j'].flat, data['train_v'].flat))
 missing  = list(zip(data['test_i'].flat,  data['test_j'].flat,  data['test_v'].flat))
 

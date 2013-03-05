@@ -14,7 +14,6 @@ import numpy as np
 
 from venture_engine_requirements import *
 import cloud
-execfile('picloud_venture_credentials.py')
 cloud_environment = 'venture-2-6'
 
 import models
@@ -55,29 +54,24 @@ def mat_files(data_dir):
     
 #### Experiment coordinators
 
-def network_cv_single_run(data, model_class, exp_params, **model_params):
+def network_cv_single_run(data, model_class, exp_params, model_params):
     '''Function to be sent to picloud'''
     start = time.clock()
     model = model_class(**model_params) # Create model
     model.create_RIPL()
     model.observe_data(data['observations']) # Observe data
-    # Setup values to be predicted
-    #### TODO - can this be sensibly encapsulated?
-    truth = []
-    missing_links = []
-    for (i,j,v) in data['missing']:
-        truth.append(int(v))
-        missing_links.append(model.RIPL.predict(parse('(p-friends %d %d)' % (i, j))))
+    truth, missing_links =  model.set_predictions(data['missing'])
     # Burn in
     sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
-                                         ids = [an_id for (an_id, _) in missing_links], \
-                                         max_runtime=exp_params['max_burn_time'], verbose=False)
+                                         ids = missing_links, \
+                                         max_runtime=exp_params['max_burn_time'], verbose=True)
     # Collect samples
     max_memory = memory()
     mcmc_output = sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
-                                                       ids = [an_id for (an_id, _) in missing_links], \
-                                                       max_runtime=exp_params['max_sample_time'], verbose=False)
+                                                       ids = missing_links, \
+                                                       max_runtime=exp_params['max_sample_time'], verbose=True)
     samples = mcmc_output['samples']
+    n_samples = samples.shape[1]
     sample_ess = mcmc_output['ess']
     max(max_memory, memory())
     # Score samples
@@ -88,33 +82,24 @@ def network_cv_single_run(data, model_class, exp_params, **model_params):
     AUC = ROCData(roc_data).auc()
     max_memory = max(max_memory, memory())
   
-    return {'predictions' : predictions, 'ess' : sample_ess, 'AUC' : AUC, 'runtime' : time.clock() - start, 'max_memory' : max(max_memory, memory())}
+    return {'predictions' : predictions, 'ess' : sample_ess, 'AUC' : AUC, 'runtime' : time.clock() - start, 'max_memory' : max(max_memory, memory()), 'n_samples' : n_samples}
 
-def network_cv_timing_run(data, model_class, exp_params, **model_params):
+def network_cv_timing_run(data, model_class, exp_params, model_params):
     '''Function to be sent to picloud'''
     start = time.clock()
     model = model_class(**model_params) # Create model
     model.create_RIPL()
     model.observe_data(data['observations']) # Observe data
-    # Setup values to be predicted
-    #### TODO - can this be sensibly encapsulated?
-    truth = []
-    missing_links = []
-    for (i,j,v) in data['missing']:
-        truth.append(int(v))
-        missing_links.append(model.RIPL.predict(parse('(p-friends %d %d)' % (i, j))))
-    # Sample
-    mcmc_output = sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
-                                                       ids = [an_id for (an_id, _) in missing_links], \
-                                                       max_runtime=exp_params['max_initial_run_time'], verbose=False)                          
-    samples = mcmc_output['samples']
-    time_per_mh_iter = mcmc_output['runtime'] / samples.shape[1] * exp_params['intermediate_iter'] 
-  
-    return {'time_per_mh_iter' : time_per_mh_iter, 'runtime' : time.clock() - start}
+    truth, missing_links =  model.set_predictions(data['missing'])
+    mcmc_output = sample.estimate_mh_time(model.RIPL, n=exp_params['n_samples'], \
+                                                      initial_mh_iter=exp_params['intermediate_iter'], \
+                                                      ids = missing_links, \
+                                                      max_runtime=exp_params['max_initial_run_time'], \
+                                                      verbose=True) 
+    return {'time_per_mh_iter' : mcmc_output['time_per_mh_iter'], 'runtime' : time.clock() - start, 'max_memory' : mcmc_output['max_memory']}
 
-def network_cv_fold(data_file, model_class, exp_params, **model_params):
+def network_cv_fold(data_file, data_dir, model_class, exp_params, **model_params):
     '''Performs a timing run and then sends random restarts to picloud'''
-    file_list = mat_files(data_dir)
     # Use the first file as a timing run
     pass
     # Loop over folds
@@ -123,6 +108,9 @@ def network_cv_fold(data_file, model_class, exp_params, **model_params):
             
 def run_experiment_file(filename):
     '''Initiates a series of experiments specified by file'''
+    
+    # Load cloud credentials at entry point to prevent picloud attempting to load file
+    execfile('picloud_venture_credentials.py')
     
     # Load experiment parameters
     with open(filename, 'r') as exp_file:
@@ -139,7 +127,7 @@ def run_experiment_file(filename):
         for data_file in mat_files(data_dir):
             for model, model_params in zip(exp_params.models, exp_params.model_params):
                 if exp_params['type'] == 'network_cv':
-                    threads.append(threading.Thread(target=network_cv_fold, args=(data_file, model, exp_params), kwargs=model_params))
+                    threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
                     threads[-1].start()
             
     # Wait for threads to complete
