@@ -24,7 +24,7 @@ class product_IRM(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'Product IRM : D=%d, alpha=%f, sym.=%s' % (D, alpha, symmetric)
+        return 'Product_IRM_D=%d_alpha=%f_sym=%s' % (self.D, self.alpha, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session

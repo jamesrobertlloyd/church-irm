@@ -12,6 +12,8 @@ import time
 import scipy.io
 import numpy as np
 import itertools
+import re
+import pickle
 
 from venture_engine_requirements import *
 import cloud
@@ -108,23 +110,50 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     data = scipy.io.loadmat(data_file, squeeze_me=True)
     observed = list(zip(data['train_i'].flat, data['train_j'].flat, data['train_v'].flat))
     missing  = list(zip(data['test_i'].flat,  data['test_j'].flat,  data['test_v'].flat))
+    truth = list(data['test_v'].flat)
     data = {'observations' : observed, 'missing' : missing}
     # Perform a timing run
     job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
                         _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
-    time_per_mh_iter = cloud.result(job_id)['time_per_mh_iter']
+    result = cloud.result(job_id)     
+    runtime = result['runtime']     
+    max_memory = result['max_memory']            
     # Map random restarts to picloud
-    exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * time_per_mh_iter))))
+    exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * result['time_per_mh_iter']))))
     job_ids = cloud.map(network_cv_single_run, itertools.repeat(data, exp_params['n_restarts']), \
                                                itertools.repeat(model_class, exp_params['n_restarts']), \
                                                itertools.repeat(exp_params, exp_params['n_restarts']), \
                                                itertools.repeat(model_params, exp_params['n_restarts']), \
                                                _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
                                                _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
-    # Collate results and write to file
+    # Collate results
     results = cloud.result(job_ids)
-    print results
-    #### FINISH ME
+    ess_sum = 0
+    for i, result in enumerate(results):
+        if i == 0:
+            overall_prediction = result['predictions']
+        else:
+            overall_prediction = np.column_stack([overall_prediction, result['predictions']])
+        runtime += result['runtime'] 
+        max_memory = max(max_memory, result['max_memory'])
+        ess_sum += result['ess']
+    overall_prediction = list(overall_prediction.mean(axis=1))
+    # Score results
+    roc_data = []
+    for (true_link, prediction) in zip(truth, overall_prediction):
+        roc_data.append((true_link, prediction))
+    AUC = ROCData(roc_data).auc()
+    # Pickle results
+    overall_results = {'runtime' : runtime, 'max_memory' : max_memory, 'AUC' : AUC, 'ess' : ess_sum, 'runtime' : runtime, \
+                       'raw_results' : results, \
+                       'data_file' : data_file, 'model_class' : model_class, 'exp_params' : exp_params, 'model_params' : model_params}
+    save_file_name = os.path.join(exp_params['results_dir'], model_class(**model_params).description(), os.path.splitext(os.path.split(data_file)[-1])[0] + '.pickle')
+    save_file_dir = os.path.split(save_file_name)[0]
+    if not os.path.isdir(save_file_dir):
+        os.makedirs(save_file_dir)
+    with open(save_file_name, 'wb') as save_file:
+        pickle.dump(overall_results, save_file, -1)
+    return overall_results
             
 def run_experiment_file(filename):
     '''Initiates a series of experiments specified by file'''

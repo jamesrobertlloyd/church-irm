@@ -132,7 +132,7 @@ def timing_triple_map_cloud():
     cloud.join(job_id)
     print cloud.result(job_ids)
     
-def fold(unused):
+def fold(unused=None):
     execfile('picloud_venture_credentials.py')
     data_file = '../data/irm_synth/irm_synth_20.mat'
     data_dir = '../data/irm_synth/'
@@ -140,14 +140,14 @@ def fold(unused):
     model_params = {'D' : 1, 'alpha' : 1, 'symmetric' : True}
     exp_params = experiment.exp_param_defaults({})
     exp_params['intermediate_iter'] = 1
-    exp_params['max_initial_run_time'] = 30
-    exp_params['max_burn_time'] = 30
-    exp_params['max_sample_time'] = 30
+    exp_params['max_initial_run_time'] = 20
+    exp_params['max_burn_time'] = 10
+    exp_params['max_sample_time'] = 20
     exp_params['n_samples'] = 25
-    exp_params['n_restarts'] = 5
+    exp_params['n_restarts'] = 3
     print experiment.exp_params_to_str(exp_params)
     
-    experiment.network_cv_fold(data_file, data_dir, model, exp_params, model_params)
+    print experiment.network_cv_fold(data_file, data_dir, model, exp_params, model_params)
     
 def threaded_fold():
     threads = []
