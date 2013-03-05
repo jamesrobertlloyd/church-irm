@@ -23,6 +23,7 @@ import models
 import sample
 from utils.pyroc import ROCData
 from utils.memory import memory
+import postprocessing
 
 #### Utilities
 
@@ -182,11 +183,12 @@ def run_experiment_file(filename, verbose=True):
                 if exp_params['type'] == 'network_cv':
                     if verbose:
                         print model
+                        print model_params
                     threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
                     threads[-1].start()
                     
     if verbose:
-        print 'Number of threads = %d' % len(threads)
+        print 'Number of child threads = %d' % len(threads)
             
     # Wait for threads to complete
     time.sleep(10) # Avoid race conditions
@@ -200,6 +202,6 @@ def run_experiment_file(filename, verbose=True):
         if not all(threads_finished):
             time.sleep(30)
     
-    # Potentially call a post processing routine
-    pass
-        
+    # Call a post processing routine to display output
+    postprocessing.print_basic_summary(exp_params['results_dir'])
+

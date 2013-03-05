@@ -1,7 +1,7 @@
 {
 'type' : 'network_cv',
 'verbose' : False,
-'results_dir' : '../results/05-Mar-test01/',
+'results_dir' : '../results/05-Mar-test02/',
 'data_dirs' : ['../data/test/'],
 'models' : [models.product_IRM]*2,
 'model_params' : [{'D' : 1, 'alpha' : 1, 'symmetric' : True}, {'D' : 2, 'alpha' : 1, 'symmetric' : True}],
