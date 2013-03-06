@@ -99,6 +99,8 @@ Venture relies on computationally efficient but statistically inefficient (as fa
 Consequently, great care must be taken over collecting enough samples and averaging over restarts.
 Also, absolute numbers of samples are likely to be incomparable between models; I will use measures of effective sample size.
 
+Source code is available at \url{https://github.com/jamesrobertlloyd/church-irm}, which details all experiment parameters.
+
 \section{Multiplicative IRM 20-Feb-2013}
 
 To test the Venture engine and familiarise myself, I wrote a basic version of the IRM \citep{Kemp2006} defined as follows.
@@ -301,7 +303,7 @@ D = 1, fold = 1, restarts = 10, ess = 265, AUC = 0.782614
 \item Start costing the use of the cloud and make an arrangement with Venture
 \end{itemize}
 
-\section{Parallelised multiplicative IRM 21-Feb-2013}
+\section{Parallelised multiplicative IRM 28-Feb-2013}
 
 Extending the experiment above to the multiplicative IRM we get the following results:
 %
@@ -365,6 +367,58 @@ However, more experiments are required to draw strong conclusions.
 
 \begin{itemize}
 \item Run extensive experiemnts on small data sets, recording many diagnostics to understand both the model and Venture
+\end{itemize}
+
+\section{First comparison of multiplicative IRM 06-Mar-2013}
+
+The model is the product of $D$ IRMs, with either fixed concentration and beta parameters or uniform / gamma priors on them respectively (details in source code).
+I generated synthetic data with 20 nodes from the prior of the product IRM with $D = 1,2,3$.
+A brief summary of results are below:
+
+\begin{table*}[ht!]
+\caption{{\small
+Product IRM comparison - AUCs
+}}
+\label{tbl:Product IRM 06-Mar-2013}
+\begin{center}
+\begin{tabular}{c c | r r r}
+Model & $\alpha, \beta$ & synth $D=1$ & synth $D=2$ & synth $D=3$ \\
+\hline
+$D=1$ & fixed & 0.743 &  0.679 &  0.645 \\
+$D=2$ & fixed & 0.708 &  0.689 &  0.649 \\
+$D=3$ & fixed & 0.735 &  0.713 &  0.618 \\
+$D=4$ & fixed & 0.755 &  0.671 &  0.614 \\
+$D=5$ & fixed & 0.710 &  0.678 &  0.625 \\
+\hline
+$D=1$ & random & 0.752 &  0.713 &  0.626 \\
+$D=2$ & random & 0.747 &  0.710 &  0.651 \\
+$D=3$ & random & 0.725 &  0.668 &  0.610 \\
+$D=4$ & random & 0.747 &  0.663 &  0.640 \\
+$D=5$ & random & 0.752 &  0.694 &  0.664 \\
+\end{tabular}
+\end{center}
+\end{table*}
+
+Various diagnostics (\eg effective sample size) are excluded - not checked fully at the moment but no major concerns suspected.
+Parallelisation of this experiment offered a 20$\times$ speedup, but this can likely be increased by reserving cores on picloud (realtime cores).
+
+\subsection{Conclusions}
+
+\begin{itemize}
+\item Data sets are probably too small to discover the structure for $D > 1$
+\item Random parameters offer a slight improvement - can probably be increased with better priors
+\item Experiments inconclusive about the choice of $D$
+\end{itemize}
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Agree financial arrangements with Venture for larger scale experiments
+\item Use realtime cores and update memory and cpu stats accordingly
+\item Experiment with data set size - how much data do we need to see $D = 2$ performing better than $D = 1$ on synthetic data?
+\item Experiment with data set size - how do cpu time and memory usage vary?
+\item Experiment with priors on $\alpha$ and beta parameters
+\item More data sets, more models
 \end{itemize}
 
 \newpage
