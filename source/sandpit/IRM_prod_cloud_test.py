@@ -21,8 +21,8 @@ fold = 1
 max_runtime = 10 # In seconds - default 1800
 n_samples = 1000 # Target - max_runtime wins in a dispute
 mh_iter = 100 # Intermediate iterations between samples
-verbose = False
-local_computation = False # Test single threaded locally
+verbose = True
+local_computation = True # Test single threaded locally
 
 repeats = 10 # Number of machines to map to
 job_kill_time = 60 # Minutes before jobs are killed - to prevent large bills!
@@ -53,7 +53,7 @@ def get_samples(void_argument):
         # Create class assignment lookup function
         MyRIPL.assume('node->class-%d' % d, parse('(mem (lambda (nodes) (cluster-crp-%d)))' % d))
         # Create class interaction probability lookup function
-        MyRIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta 0.5 0.5)))')) 
+        MyRIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta (+ 0.5 (gamma 1.0 1.0)) (+ 0.5 (gamma 1.0 1.0)))))')) 
      
     # Create relation probability function    
     MyRIPL.assume('p-friends', parse('(lambda (node1 node2) (* ' + ' '.join(['(classes->parameters-%d (node->class-%d node1) (node->class-%d node2))' % (d,d,d) for d in range(D)]) + '))')) 

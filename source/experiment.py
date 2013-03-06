@@ -24,6 +24,7 @@ import sample
 from utils.pyroc import ROCData
 from utils.memory import memory
 import postprocessing
+import utils
 
 #### Utilities
 
@@ -55,9 +56,9 @@ def exp_params_to_str(exp_params):
         result += "%s = %s,\n" % (key, value)
     return result
     
-def mat_files(data_dir):
+def data_files(data_dir):
     """Produces list of all .mat files in a directory - returns absolute paths"""
-    return [os.path.join(data_dir, file_name) for file_name in os.listdir(data_dir) if file_name[-4:] == '.mat']
+    return [os.path.join(data_dir, file_name) for file_name in os.listdir(data_dir) if (file_name[-4:] == '.mat') or (file_name[-7:] == '.pickle')]
     
 #### Experiment coordinators
 
@@ -108,11 +109,8 @@ def network_cv_timing_run(data, model_class, exp_params, model_params):
 def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     '''Performs a timing run and then sends random restarts to picloud'''
     # Load data
-    data = scipy.io.loadmat(data_file, squeeze_me=True)
-    observed = list(zip(data['train_i'].flat, data['train_j'].flat, data['train_v'].flat))
-    missing  = list(zip(data['test_i'].flat,  data['test_j'].flat,  data['test_v'].flat))
-    truth = list(data['test_v'].flat)
-    data = {'observations' : observed, 'missing' : missing}
+    data = utils.data.load_network_cv_data(data_file)
+    truth = data['truth']
     # Perform a timing run
     job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
                         _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
@@ -159,6 +157,7 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
 def run_experiment_file(filename, verbose=True):
     '''Initiates a series of experiments specified by file'''
     
+    start = time.time()
     # Load cloud credentials at entry point to prevent picloud attempting to load file
     execfile('picloud_venture_credentials.py')
     
@@ -176,7 +175,7 @@ def run_experiment_file(filename, verbose=True):
     for data_dir in exp_params['data_dirs']:
         if verbose:
             print data_dir
-        for data_file in mat_files(data_dir):
+        for data_file in data_files(data_dir):
             if verbose:
                 print data_file
             for model, model_params in zip(exp_params['models'], exp_params['model_params']):
@@ -204,4 +203,5 @@ def run_experiment_file(filename, verbose=True):
     
     # Call a post processing routine to display output
     postprocessing.print_basic_summary(exp_params['results_dir'])
+    print 'Wall clock time = %03.1f minutes' % ((time.time() - start) / 60)
 

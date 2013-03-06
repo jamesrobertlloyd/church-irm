@@ -18,13 +18,14 @@ class venture_model:
         
 class product_IRM(venture_model):
     
-    def __init__(self, D=1, alpha=1, symmetric=True):
+    def __init__(self, D=1, alpha=1, beta=1, symmetric=True):
         self.D = D
         self.alpha = alpha
+        self.beta = beta
         self.symmetric = symmetric
         
     def description(self):
-        return 'Product_IRM_D=%d_alpha=%f_sym=%s' % (self.D, self.alpha, self.symmetric)
+        return 'Product_IRM_D=%d_alpha=%s_beta=%s_sym=%s' % (self.D, self.alpha, self.beta, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -34,12 +35,12 @@ class product_IRM(venture_model):
 
         for d in range(self.D):
             # Instantiate CRP
-            #self.RIPL.assume('alpha-%d' % d, parse('(uniform-continuous 0.0001 2.0)'))
-            self.RIPL.assume('cluster-crp-%d' % d, parse('(CRP/make %f)' % self.alpha))
+            self.RIPL.assume('alpha-%d' % d, parse('%s' % self.alpha))
+            self.RIPL.assume('cluster-crp-%d' % d, parse('(CRP/make alpha-%d)' % d))
             # Create class assignment lookup function
             self.RIPL.assume('node->class-%d' % d, parse('(mem (lambda (nodes) (cluster-crp-%d)))' % d))
             # Create class interaction probability lookup function
-            self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta 0.5 0.5)))')) 
+            self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta %s %s)))' % (self.beta, self.beta))) 
          
         # Create relation probability function    
         self.RIPL.assume('p-friends', parse('(lambda (node1 node2) (* ' + ' '.join(['(classes->parameters-%d (node->class-%d node1) (node->class-%d node2))' % (d,d,d) for d in range(self.D)]) + '))')) 
