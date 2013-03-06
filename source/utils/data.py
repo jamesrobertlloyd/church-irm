@@ -9,9 +9,9 @@ import pickle
 
 def load_dictionary(file_name):
     '''Loads either a .mat or .pickle'''
-    extension = os.path.splitext(file_name)
+    extension = os.path.splitext(file_name)[-1]
     if extension == '.mat':
-        return scipy.io.loadmat(data_file, squeeze_me=True)
+        return scipy.io.loadmat(file_name, squeeze_me=True)
     elif extension == '.pickle':
         pickle_file = open(file_name, 'rb')
         data = pickle.load(pickle_file)

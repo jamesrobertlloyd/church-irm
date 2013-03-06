@@ -24,7 +24,7 @@ import sample
 from utils.pyroc import ROCData
 from utils.memory import memory
 import postprocessing
-import utils
+import utils.data
 
 #### Utilities
 
@@ -197,7 +197,7 @@ def run_experiment_file(filename, verbose=True):
             if not threads_finished[i]:
                 if not thread.is_alive():
                     threads_finished[i] = True
-        print '%d of %d threads complete' % (sum(threads_finished), len(threads_finished))
+        print '%03d of %03d threads complete' % (sum(threads_finished), len(threads_finished))
         if not all(threads_finished):
             time.sleep(30)
     
