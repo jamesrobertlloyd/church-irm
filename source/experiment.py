@@ -43,7 +43,10 @@ def exp_param_defaults(exp_params):
                 'intermediate_iter' : 1,
                 'core_type' : 'c1',
                 'cores_per_job' : 1,
-                'n_restarts' : 5}
+                'n_restarts' : 5,
+                'use_realtime_cores' : False,
+                'n_realtime_cores' : 1,
+                'max_realtime_time' : 0.1} # In hours
     # Iterate through default key-value pairs, setting all unset keys
     for key, value in defaults.iteritems():
         if not key in exp_params:
@@ -170,36 +173,50 @@ def run_experiment_file(filename, verbose=True):
     if not os.path.isdir(exp_params['results_dir']):
         os.makedirs(exp_params['results_dir'])
         
-    # Loop through data directories and model classes - starting threads
-    threads = []
-    for data_dir in exp_params['data_dirs']:
-        if verbose:
-            print data_dir
-        for data_file in data_files(data_dir):
+    # Spin up realtime cores if desired
+    if exp_params['use_realtime_cores']:
+        realtime_request = cloud.realtime.request(type=exp_params['core_type'], cores=exp_params['n_realtime_cores'], max_duration=exp_params['max_realtime_time'])
+    
+    try:
+        
+        # Loop through data directories and model classes - starting threads
+        threads = []
+        for data_dir in exp_params['data_dirs']:
             if verbose:
-                print data_file
-            for model, model_params in zip(exp_params['models'], exp_params['model_params']):
-                if exp_params['type'] == 'network_cv':
-                    if verbose:
-                        print model
-                        print model_params
-                    threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
-                    threads[-1].start()
-                    
-    if verbose:
-        print 'Number of child threads = %d' % len(threads)
-            
-    # Wait for threads to complete
-    time.sleep(10) # Avoid race conditions
-    threads_finished = [False] * len(threads)
-    while not all(threads_finished):
-        for i, thread in enumerate(threads):
-            if not threads_finished[i]:
-                if not thread.is_alive():
-                    threads_finished[i] = True
-        print '%03d of %03d threads complete' % (sum(threads_finished), len(threads_finished))
-        if not all(threads_finished):
-            time.sleep(30)
+                print data_dir
+            for data_file in data_files(data_dir):
+                if verbose:
+                    print data_file
+                for model, model_params in zip(exp_params['models'], exp_params['model_params']):
+                    if exp_params['type'] == 'network_cv':
+                        if verbose:
+                            print model
+                            print model_params
+                        threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
+                        threads[-1].start()
+                        
+        if verbose:
+            print 'Number of child threads = %d' % len(threads)
+                
+        # Wait for threads to complete
+        time.sleep(10) # Avoid race conditions
+        threads_finished = [False] * len(threads)
+        while not all(threads_finished):
+            for i, thread in enumerate(threads):
+                if not threads_finished[i]:
+                    if not thread.is_alive():
+                        threads_finished[i] = True
+            print '%03d of %03d threads complete' % (sum(threads_finished), len(threads_finished))
+            if not all(threads_finished):
+                time.sleep(30)
+                
+    finally:
+    
+        # Cancel real time cores if necessary
+        
+        if exp_params['use_realtime_cores']:
+            cloud.realtime.release(realtime_request['request_id'])
+        
     
     # Call a post processing routine to display output
     postprocessing.print_basic_summary(exp_params['results_dir'])
