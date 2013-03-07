@@ -1,4 +1,31 @@
 
+def loadToRIPL(ripl, generative_model_string): # Jay Baxter, March 04 2013
+    import re
+    """Convert a Church generative model string into a sequence of Venture directives."""
+    lines = re.findall(r'\[(.*?)\]', generative_model_string, re.DOTALL)
+    for line in lines:
+        arguments = line.split(" ", 1)
+        directive_name = arguments[0].lower()
+        if (directive_name == "assume"):
+          name_and_expression = arguments[1].split(" ", 1)
+          ripl.assume(name_and_expression[0], parse(name_and_expression[1]))
+        elif (directive_name == "predict"):
+          name_and_expression = arguments[1].split(" ", 1)
+          ripl.predict(parse(arguments[1]))
+        elif (directive_name == "observe"):
+          expression_and_literal_value = arguments[1].rsplit(" ", 1)
+          ripl.observe(parse(expression_and_literal_value[0]), expression_and_literal_value[1])
+        elif (directive_name == "infer"):
+          ripl.infer(int(arguments[1]))
+        elif (directive_name == "forget"):
+          ripl.forget(int(arguments[1]))
+        elif (directive_name == "report"):
+          ripl.report_value(int(arguments[1]))
+        elif (directive_name == "clear"):
+          ripl.clear()
+        else:
+          raise Exception("Unknown directive")
+
 def read(s):
     "Read a Scheme expression from a string."
     return read_from(tokenize(s))
