@@ -159,7 +159,7 @@ def run_experiment_file(filename, verbose=True):
     
     start = time.time()
     # Load cloud credentials at entry point to prevent picloud attempting to load file
-    execfile('picloud_venture_credentials.py')
+    execfile('picloud_ah_credentials.py')
     
     # Load experiment parameters
     with open(filename, 'r') as exp_file:
