@@ -15,5 +15,6 @@
 'n_restarts' : 10,
 'use_realtime_cores' : True,
 'n_realtime_cores' : 10,
-'max_realtime_time' : 0.1
+'max_realtime_time' : 1,
+'release_realtime_cores' : True
 }

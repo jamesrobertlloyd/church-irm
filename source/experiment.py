@@ -46,7 +46,8 @@ def exp_param_defaults(exp_params):
                 'n_restarts' : 5,
                 'use_realtime_cores' : False,
                 'n_realtime_cores' : 1,
-                'max_realtime_time' : 0.1} # In hours
+                'max_realtime_time' : 1, # In hours - integer
+                'release_realtime_cores' : True} 
     # Iterate through default key-value pairs, setting all unset keys
     for key, value in defaults.iteritems():
         if not key in exp_params:
@@ -175,10 +176,15 @@ def run_experiment_file(filename, verbose=True):
         
     # Spin up realtime cores if desired
     if exp_params['use_realtime_cores']:
+        if verbose:
+            print 'Requesting realtime cores'
         realtime_request = cloud.realtime.request(type=exp_params['core_type'], cores=exp_params['n_realtime_cores'], max_duration=exp_params['max_realtime_time'])
     
     try:
         
+        if verbose:
+            print 'Creating threads'
+            
         # Loop through data directories and model classes - starting threads
         threads = []
         for data_dir in exp_params['data_dirs']:
@@ -213,8 +219,9 @@ def run_experiment_file(filename, verbose=True):
     finally:
     
         # Cancel real time cores if necessary
-        
-        if exp_params['use_realtime_cores']:
+        if exp_params['use_realtime_cores'] and exp_params['release_realtime_cores']:
+            if verbose:
+                print 'Releasing real time cores'
             cloud.realtime.release(realtime_request['request_id'])
         
     
