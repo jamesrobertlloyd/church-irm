@@ -71,3 +71,4 @@ nosetests.xml
 .DS_Store
 notebook/notebook.pdf
 source/picloud_venture_credentials.py
+source/picloud_ah_credentials.py
