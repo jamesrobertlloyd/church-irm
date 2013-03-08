@@ -4,7 +4,7 @@ seed=0; % fixing the seed of the random generators
 randn('state',seed);
 rand('state',seed);
 
-n = 2 * 3 * 5;
+n = 2 * 3 * 5 * 3;
 obs_mask = rand(n, n) < 0.8;
 
 %% Basic block model
