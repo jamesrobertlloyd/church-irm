@@ -2,7 +2,7 @@
 'type' : 'network_cv',
 'verbose' : False,
 'results_dir' : '../results/11-Mar-prod-add/',
-'data_dirs' : ['../data/50-nodes/'],
+'data_dirs' : ['../data/50_nodes/'],
 'models' : [models.product_IRM, models.product_IRM, models.product_IRM, models.product_IRM, models.additive_IRM, models.additive_IRM, models.additive_IRM, models.additive_IRM],
 'model_params' : [{'D' : 1, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'beta' : '(+ 0.5 (gamma 1.0 1.0))'}, {'D' : 3, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'beta' : '(+ 0.5 (gamma 1.0 1.0))'}, {'D' : 5, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'beta' : '(+ 0.5 (gamma 1.0 1.0))'}, {'D' : 7, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'beta' : '(+ 0.5 (gamma 1.0 1.0))'}, {'D' : 1, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'sigma' : '(+ 0.01 (gamma 1 1))'}, {'D' : 3, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'sigma' : '(+ 0.01 (gamma 1 1))'}, {'D' : 5, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'sigma' : '(+ 0.01 (gamma 1 1))'}, {'D' : 7, 'alpha' : '(uniform-continuous 0.0001 2.0)', 'sigma' : '(+ 0.01 (gamma 1 1))'}],
 'n_samples' : 500,
