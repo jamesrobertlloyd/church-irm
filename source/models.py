@@ -40,7 +40,10 @@ class product_IRM(venture_model):
             # Create class assignment lookup function
             self.RIPL.assume('node->class-%d' % d, parse('(mem (lambda (nodes) (cluster-crp-%d)))' % d))
             # Create class interaction probability lookup function
-            self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta %s %s)))' % (self.beta, self.beta))) 
+            #self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta %s %s)))' % (self.beta, self.beta))) 
+            self.RIPL.assume('beta-a-%d' % d, parse('%s' % self.beta))
+            self.RIPL.assume('beta-b-%d' % d, parse('%s' % self.beta))
+            self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (beta beta-a-%d beta-b-%d)))' % (d, d))) 
          
         # Create relation probability function    
         self.RIPL.assume('p-friends', parse('(lambda (node1 node2) (* ' + ' '.join(['(classes->parameters-%d (node->class-%d node1) (node->class-%d node2))' % (d,d,d) for d in range(self.D)]) + '))')) 
@@ -96,7 +99,9 @@ class additive_IRM(venture_model):
             # Create class assignment lookup function
             self.RIPL.assume('node->class-%d' % d, parse('(mem (lambda (nodes) (cluster-crp-%d)))' % d))
             # Create class interaction probability lookup function
-            self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (normal 0 %s)))' % (self.sigma))) 
+            #self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (normal 0 %s)))' % (self.sigma))) 
+            self.RIPL.assume('sigma-%d' % d, parse('%s' % self.sigma))
+            self.RIPL.assume('classes->parameters-%d' % d, parse('(mem (lambda (class1 class2) (normal 0 sigma-%d)))' % d)) 
          
         # Create relation probability function    
         self.RIPL.assume('p-friends', parse('(lambda (node1 node2) (logistic (+ bias ' + ' '.join(['(classes->parameters-%d (node->class-%d node1) (node->class-%d node2))' % (d,d,d) for d in range(self.D)]) + ')))')) 
