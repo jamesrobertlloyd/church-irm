@@ -421,6 +421,77 @@ Parallelisation of this experiment offered a 20$\times$ speedup, but this can li
 \item More data sets, more models
 \end{itemize}
 
+\section{Data set size test 08-Mar-2013}
+
+\TBD{Write me! Conclusions were confusing, prompting real data comparisons}
+
+\section{Multiplicative and additive IRMs 11-Mar-2013}
+
+Using the hyperparameter version of the product IRM and
+%
+\begin{lstlisting}[frame=single]
+(ASSUME alpha (uniform-continuous 0.0001 2.0))
+(ASSUME cluster-crp (CRP/make alpha))
+(ASSUME node->class (mem (lambda (node) (cluster-crp))))
+(ASSUME classes->weights (mem (lambda (class1 class2) 
+                              (normal 0 (+ 0.01 (gamma 1 1))))))
+(ASSUME bias (normal 0 2))
+(ASSUME p-friends 
+  (lambda (node1 node2) 
+    (logistic (+ bias (classes->weights (node->class node1) 
+                                        (node->class node2) ))) ) ) 
+\end{lstlisting}
+%
+where the final sum within the logistic might include multiple independent a priori models.
+
+{
+\remark
+The gamma prior on the standard deviations of the normals is independent for each weight.
+This is a coding error rather than a design choice, leading to a marginally heavy tailed distribution rather than an automatic relevance determination effect.
+}
+
+Experiments were on an 80/20 split of the first 50 nodes of some `standard' datasets.
+AUC results below, effective sample sizes suggest that the experiments were ok.
+Protein and NIPS are very sparse when subsetted in this manner so the results are high variance.
+Parallelisation issues are essentially fixed; these experiments were run with 100x speedup and cost about \$10.
+
+\begin{table*}[ht!]
+\caption{{\small
+Product and additive IRM comparisons - AUCs
+}}
+\label{tbl:Prod Add IRM 11-Mar-2013}
+\begin{center}
+\begin{tabular}{c | r r r r}
+Model & Highschool & Dolphin & Protein & NIPS \\
+\hline
+$P : D=1$ & 0.806 & 0.684 &  0.692 &  $\mathbf{0.868}$ \\
+$P : D=3$ & $\mathbf{0.843}$ & 0.774 &  0.742 &  0.603 \\
+$P : D=5$ & 0.819 & $\mathbf{0.784}$ &  $\mathbf{0.784}$ &  0.702 \\
+$P : D=7$ & 0.822 & 0.771 &  0.725 &  0.648 \\
+\hline
+$A : D=1$ & 0.811 & 0.752 &  0.714 &  $\mathbf{0.691}$ \\
+$A : D=3$ & $\mathbf{0.825}$ & 0.763 &  0.744 &  0.597 \\
+$A : D=5$ & 0.822 & $\mathbf{0.785}$ &  $\mathbf{0.762}$ &  0.591 \\
+$A : D=7$ & 0.804 & 0.783 &  0.760 &  0.551 \\
+\end{tabular}
+\end{center}
+\end{table*}
+
+\subsection{Conclusions}
+
+\begin{itemize}
+\item No clear winner for additive vs.~multipicative (although there may be a significant difference in predictive likelihoods due to the introduction of an explicit bias term in the additive model.
+\item Very interesting that the top scoring models follow the same dimension / data set pattern. This suggests that there is insufficient automatic complexity control (which could have been achieved by hyperparameter coupling - see remark).
+\end{itemize}
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Experiment with automatic relevance determination style models
+\item Try to write versions which place a prior on the number of additive/multiplicative components
+\item Evaluate predictive likelihoods and other performance scores
+\end{itemize}
+
 \newpage
 
 %\appendix
