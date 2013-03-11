@@ -423,11 +423,14 @@ Parallelisation of this experiment offered a 20$\times$ speedup, but this can li
 
 \section{Data set size test 08-Mar-2013}
 
-\TBD{Write me! Conclusions were confusing, prompting real data comparisons}
+\TBD{
+Quick notes: I created synthetic data sets of differeing sizes, hoping to show that at a certain data size one could distinguish between a regular IRM and product of two IRMs.
+No statistically significant difference was detected (number of nodes was 30, 60 and 90) prompting tests on real data.
+Ultimately we should test the Venture engine on some heterogeous models and data generated from them to check that we are not conflating Venture's ability to sample from certain types of model.}
 
 \section{Multiplicative and additive IRMs 11-Mar-2013}
 
-Using the hyperparameter version of the product IRM and
+Using the hyperparameter version of the product IRM described
 %
 \begin{lstlisting}[frame=single]
 (ASSUME alpha (uniform-continuous 0.0001 2.0))
@@ -448,6 +451,8 @@ where the final sum within the logistic might include multiple independent a pri
 \remark
 The gamma prior on the standard deviations of the normals is independent for each weight.
 This is a coding error rather than a design choice, leading to a marginally heavy tailed distribution rather than an automatic relevance determination effect.
+The same lack of coupling happened for the multiplicative IRM as well.
+Future experiments will try the coupled parameter version of these models.
 }
 
 Experiments were on an 80/20 split of the first 50 nodes of some `standard' datasets.
