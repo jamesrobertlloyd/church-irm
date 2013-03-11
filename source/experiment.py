@@ -138,9 +138,9 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
         else:
             overall_prediction = np.column_stack([overall_prediction, result['predictions']])
         runtime += result['runtime'] 
-        max_memory = max(max_memory, cloud.info(job_ids[i], ['memory'])[job_id[i]]['memory.max_usage']) #result['max_memory'])
+        max_memory = max(max_memory, cloud.info(job_ids[i], ['memory'])[job_ids[i]]['memory.max_usage']) #result['max_memory'])
         ess_sum += result['ess']
-    overall_prediction = list(overall_prediction.mean(axis=1))
+    overall_prediction = list(overall_prediction.mean(axis=1)) #### FIXME - fails when only one column
     # Score results
     roc_data = []
     for (true_link, prediction) in zip(truth, overall_prediction):

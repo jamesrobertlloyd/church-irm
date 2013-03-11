@@ -1,7 +1,7 @@
 {
 'type' : 'network_cv',
 'verbose' : False,
-'results_dir' : '../results/07-Mar-test01/',
+'results_dir' : '../results/11-Mar-test01/',
 'data_dirs' : ['../data/test/'],
 'models' : [models.additive_IRM]*2,
 'model_params' : [{'D' : 1, 'sigma' : '(+ 0.01 (gamma 1 1))'}, {'D' : 2, 'sigma' : '(+ 0.01 (gamma 1 1))'}],
@@ -12,7 +12,7 @@
 'intermediate_iter' : 1,
 'core_type' : 'c2',
 'cores_per_job' : 1,
-'n_restarts' : 1,
+'n_restarts' : 2,
 'use_realtime_cores' : False,
 'n_realtime_cores' : 0,
 'max_realtime_time' : 0,
