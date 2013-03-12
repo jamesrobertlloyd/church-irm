@@ -497,6 +497,96 @@ $A : D=7$ & 0.804 & 0.783 &  0.760 &  0.551 \\
 \item Evaluate predictive likelihoods and other performance scores
 \end{itemize}
 
+\subsection{Multiplicative and additive IRMs 12-Mar-2013}
+
+I ran some similar experiments (mostly because I realised I could fit them on a cheaper core).
+Apologies for flipping the order of NIPS and Dolphins.
+
+\begin{table*}[ht!]
+\caption{{\small
+Product and additive IRM comparisons - AUCs
+}}
+\label{tbl:Prod Add IRM 11-Mar-2013}
+\begin{center}
+\begin{tabular}{c | r r r r}
+Model & Highschool & NIPS & Protein & Dolphins \\
+\hline
+$P : D=1$ & 0.787 & $\mathbf{0.813}$ & 0.688 & 0.674 \\
+$P : D=2$ & 0.837 & 0.716 & 0.781 & 0.818 \\
+$P : D=3$ & $\mathbf{0.852}$ & 0.648 & $\mathbf{0.796}$ & $\mathbf{0.823}$ \\
+$P : D=4$ & 0.815 & 0.700 & 0.764 & 0.814 \\
+$P : D=5$ & 0.806 & 0.646 & 0.756 & 0.813 \\
+\hline
+$A : D=1$ & $\mathbf{0.823}$ & $\mathbf{0.720}$ & 0.712 & 0.754 \\
+$A : D=2$ & 0.815 & 0.695 & 0.711 & 0.746 \\
+$A : D=3$ & 0.821 & 0.580 & 0.729 & $\mathbf{0.786}$ \\
+$A : D=4$ & 0.821 & 0.593 & 0.733 & 0.765 \\
+$A : D=5$ & 0.797 & 0.613 & $\mathbf{0.741}$ & 0.757 \\
+\end{tabular}
+\end{center}
+\end{table*}
+
+\subsection{Conclusions}
+
+\begin{itemize}
+\item Perhaps some evidence that the multiplicative model is winning
+\item No clear structure in the dimensionality other than NIPS preferring one dimension
+\end{itemize}
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Experiment with automatic relevance determination style models
+\item Try to write versions which place a prior on the number of additive/multiplicative components
+\item Evaluate predictive likelihoods and other performance scores
+\end{itemize}
+
+\subsection{Tying hyperparameters 12-Mar-2013}
+
+Fixing the lack of hyperparameter tying, I performed the same experiment with the corrected models.
+These priors have the ability to perform automatic relevance determination and thus might be expected to be less senstive to the dimensionality
+
+\begin{table*}[ht!]
+\caption{{\small
+Product and additive IRM comparisons - AUCs
+}}
+\label{tbl:Prod Add IRM 11-Mar-2013}
+\begin{center}
+\begin{tabular}{c | r r r r}
+Model & Highschool & NIPS & Protein & Dolphins \\
+\hline
+$P : D=1$ & 0.841 & $\mathbf{0.743}$ & 0.717 & 0.766 \\
+$P : D=2$ & $\mathbf{0.856}$ & 0.654 & 0.777 & 0.805 \\
+$P : D=3$ & 0.822 & 0.660 & 0.762 & 0.791 \\
+$P : D=4$ & 0.824 & 0.708 & 0.784 & $\mathbf{0.835}$ \\
+$P : D=5$ & 0.839 & 0.716 & $\mathbf{0.794}$ & 0.785 \\
+\hline
+$A : D=1$ & 0.800 & $\mathbf{0.708}$ & 0.747 & 0.719 \\
+$A : D=2$ & 0.810 & 0.646 & 0.741 & $\mathbf{0.775}$ \\
+$A : D=3$ & 0.819 & 0.671 & 0.762 & 0.738 \\
+$A : D=4$ & $\mathbf{0.840}$ & 0.652 & $\mathbf{0.798}$ & 0.766 \\
+$A : D=5$ & 0.810 & 0.654 & 0.745 & 0.769 \\
+\end{tabular}
+\end{center}
+\end{table*}
+
+\subsection{Conclusions}
+
+\begin{itemize}
+\item More evidence that multiplicative wins
+\item No clear structure in the dimensionality again apart from NIPS
+\item Higher dimensional models (4 and 5) almost always (7 out of 8) performing better than previous (no ARD) versions
+\item No real evidence that the dimensionality of a model is key; an adaptive model will probably do fine
+\end{itemize}
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Try to write versions which place a prior on the number of additive/multiplicative components
+\item Evaluate predictive likelihoods and other performance scores
+\item Need restarts / folds to asses statistical significance
+\end{itemize}
+
 \newpage
 
 %\appendix
