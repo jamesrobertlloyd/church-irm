@@ -544,7 +544,7 @@ $A : D=5$ & 0.797 & 0.613 & $\mathbf{0.741}$ & 0.757 \\
 \subsection{Tying hyperparameters 12-Mar-2013}
 
 Fixing the lack of hyperparameter tying, I performed the same experiment with the corrected models.
-These priors have the ability to perform automatic relevance determination and thus might be expected to be less senstive to the dimensionality
+These priors have the ability to perform automatic relevance determination and thus might be expected to be less senstive to the dimensionality.
 
 \begin{table*}[ht!]
 \caption{{\small
@@ -576,6 +576,7 @@ $A : D=5$ & 0.810 & 0.654 & 0.745 & 0.769 \\
 \item More evidence that multiplicative wins
 \item No clear structure in the dimensionality again apart from NIPS
 \item Higher dimensional models (4 and 5) almost always (7 out of 8) performing better than previous (no ARD) versions
+\item Performance decrease with higher dimensions on NIPS not as severe as before
 \item No real evidence that the dimensionality of a model is key; an adaptive model will probably do fine
 \end{itemize}
 
