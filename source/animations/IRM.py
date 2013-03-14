@@ -48,12 +48,15 @@ def refresh_data(ax):
     
 # Load high school data and concatenate
 #data = utils.data.load_network_cv_data('../../data/50_nodes/HighSchool_50.mat')
-data = utils.data.load_network_cv_data('../../data/50_nodes/dolphins_50.mat')
+#data = utils.data.load_network_cv_data('../../data/50_nodes/dolphins_50.mat')
+#data = utils.data.load_network_cv_data('../../data/dolphin_full/dolphins.mat')
+#data = utils.data.load_network_cv_data('../../data/hs/hs_1of5.mat')
+data = utils.data.load_network_cv_data('../../data/irm_prod_synth_size_test/prod_irm_2_90_synth.mat')
 data['observations'] = data['observations'] + data['missing']
 
 # Subset as necessary
 
-data['observations'] = [(i,j,v) for (i,j,v) in data['observations'] if (i <= 50) and (j <= 50)]
+#data['observations'] = [(i,j,v) for (i,j,v) in data['observations'] if (i <= 50) and (j <= 50)]
 n = max(max(i, j) for (i, j, v) in data['observations'])
 print n
 ordering = range(1, n+1)
@@ -77,45 +80,48 @@ ax.set_ylim(0, 1)
 
 #### Venture stuff
 
-import client
-import lisp_parser
+#import client
+#import lisp_parser
+from venture_engine_requirements import *
+import venture_engine
 
-Port = 5024
-MyRIPL = client.RemoteRIPL("http://ec2-54-235-201-199.compute-1.amazonaws.com:" + str(Port))
+#Port = 5024
+#MyRIPL = client.RemoteRIPL("http://ec2-54-235-201-199.compute-1.amazonaws.com:" + str(Port))
+MyRIPL = venture_engine
 
 # Delete previous sessions data.
 MyRIPL.clear()
 
 # Instantiate CRP
-#MyRIPL.assume('alpha', lisp_parser.parse('(uniform-continuous 0.0001 2.0)'))
-MyRIPL.assume('cluster-crp', lisp_parser.parse('(CRP/make 1)'))
+#MyRIPL.assume('alpha', parse('(uniform-continuous 0.0001 2.0)'))
+MyRIPL.assume('cluster-crp', parse('(CRP/make 1)'))
 # Instantiate cluster memberships
-nodes = [MyRIPL.assume('node-%03d' % i, lisp_parser.parse('(cluster-crp)'))[0] for i in range(1, n+1)]
+nodes = [MyRIPL.assume('node-%03d' % i, parse('(cluster-crp)'))[0] for i in range(1, n+1)]
 # Create class assignment lookup function
-MyRIPL.assume('node->class', lisp_parser.parse('(mem (lambda (nodes) (cluster-crp)))'))
+MyRIPL.assume('node->class', parse('(mem (lambda (nodes) (cluster-crp)))'))
 # Create class interaction probability lookup function
-MyRIPL.assume('classes->parameters', lisp_parser.parse('(mem (lambda (class1 class2) (beta 1 1)))'))
+MyRIPL.assume('classes->parameters', parse('(mem (lambda (class1 class2) (beta 1 1)))'))
 
 # Observe stuff
 for (i,j,v) in data['observations']:
-    print 'Observing (%3d, %3d) = %s' % (i, j, v)
+    #print 'Observing (%3d, %3d) = %s' % (i, j, v)
     if v:
-      MyRIPL.observe(lisp_parser.parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (i, j)), 'true')
-      MyRIPL.observe(lisp_parser.parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (j, i)), 'true')
+      MyRIPL.observe(parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (i, j)), 'true')
+      MyRIPL.observe(parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (j, i)), 'true')
     else:
-      MyRIPL.observe(lisp_parser.parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (i, j)), 'false')
-      MyRIPL.observe(lisp_parser.parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (j, i)), 'false')
+      MyRIPL.observe(parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (i, j)), 'false')
+      MyRIPL.observe(parse('(bernoulli (classes->parameters node-%03d node-%03d))' % (j, i)), 'false')
 
 # Plotting loop
 
 show(block=False)
  # show the figure manager but don't block script execution so animation works..
 while True:
-    print 'Telling Venture to infer'
-    MyRIPL.infer(1000, rerun=False, threadsNumber=1)
-    print 'Inference complete'
+    #print 'Telling Venture to infer'
+    MyRIPL.infer(250)
+    #print 'Inference complete'
     clusters = [MyRIPL.report_value(node) for node in nodes]
-    print clusters
+    #print clusters
     n_clusters = max(clusters) + 1
     ordering_count = 1
     for c in range(n_clusters):
@@ -127,4 +133,4 @@ while True:
     refresh_data(ax)
     f.canvas.draw()
     count += 1
-    time.sleep(0.5)
+    time.sleep(0.1)
