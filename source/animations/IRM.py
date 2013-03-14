@@ -49,9 +49,9 @@ def refresh_data(ax):
 # Load high school data and concatenate
 #data = utils.data.load_network_cv_data('../../data/50_nodes/HighSchool_50.mat')
 #data = utils.data.load_network_cv_data('../../data/50_nodes/dolphins_50.mat')
-#data = utils.data.load_network_cv_data('../../data/dolphin_full/dolphins.mat')
+data = utils.data.load_network_cv_data('../../data/dolphin_full/dolphins.mat')
 #data = utils.data.load_network_cv_data('../../data/hs/hs_1of5.mat')
-data = utils.data.load_network_cv_data('../../data/irm_prod_synth_size_test/prod_irm_2_90_synth.mat')
+#data = utils.data.load_network_cv_data('../../data/irm_prod_synth_size_test/prod_irm_2_90_synth.mat')
 data['observations'] = data['observations'] + data['missing']
 
 # Subset as necessary
