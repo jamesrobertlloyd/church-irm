@@ -129,8 +129,6 @@ class additive_IRM(venture_model):
             an_id = self.RIPL.predict(parse('(p-friends %d %d)' % (i, j)))[0]
             missing_links.append(an_id)
         return (truth, missing_links)
-        
-
                     
 class finite_LFRM(venture_model):
     
@@ -154,6 +152,7 @@ class finite_LFRM(venture_model):
         self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
         for d in range(self.D):
             # Instantiate feature probabilities
+            #### FIXME - move alpha out of loop!
             self.RIPL.assume('alpha-%d' % d, parse('%s' % self.alpha))
             self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha-%d %d) 1)' % (d, self.D)))
             # Create feature assignment lookup function
@@ -166,6 +165,65 @@ class finite_LFRM(venture_model):
         self.RIPL.assume('p-friends', parse('(lambda (node1 node2) (logistic (+ bias ' + \
                                                                                 ' '.join(['(* (features->W %d %d) (node->feature-%d node1) (node->feature-%d node2))' \
                                                                                 % (i,j,i,j) for i in range(self.D) for j in range(self.D)]) + ')))')) 
+        # Create relation evaluation function
+        self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
+       
+    def observe_data(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        for (i,j,v) in observations:
+            if v:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'true')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'true')
+            else:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'false')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'false')
+                    
+    def set_predictions(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        truth = []
+        missing_links = []
+        for (i,j,v) in observations:
+            truth.append(int(v))
+            an_id = self.RIPL.predict(parse('(p-friends %d %d)' % (i, j)))[0]
+            missing_links.append(an_id)
+        return (truth, missing_links)
+        
+
+                    
+class finite_2class_ILA(venture_model):
+    
+    def __init__(self, D=1, alpha=1, bias='(normal 0 4)', sigma=1, symmetric=True):
+        self.D = D
+        self.alpha = alpha
+        self.bias = bias
+        self.sigma = sigma
+        self.symmetric = symmetric
+        
+    def description(self):
+        return 'finite_2class_ILA_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        
+    def create_RIPL(self):
+        # Create RIPL and clear any previous session
+        import venture_engine
+        self.RIPL = venture_engine
+        self.RIPL.clear()
+
+        self.RIPL.assume('bias', parse('%s' % self.bias))
+        self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
+        for d in range(self.D):
+            # Instantiate feature probabilities
+            self.RIPL.assume('alpha-%d' % d, parse('%s' % self.alpha))
+            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha-%d %d) 1)' % (d, self.D)))
+            # Create feature assignment lookup function
+            self.RIPL.assume('node->feature-%d' % d, parse('(mem (lambda (node) (bernoulli theta-%d)))' % d))
+            # Create class interaction probability lookup function
+            self.RIPL.assume('sigma-%d' % d, parse('%s' % self.sigma))
+            self.RIPL.assume('features->W-%d' % d, parse('(mem (lambda (feature1 feature2) (normal 0 sigma-%d)))' % d)) 
+         
+        # Create relation probability function    
+        self.RIPL.assume('p-friends', parse('(lambda (node1 node2) (logistic (+ bias ' + ' '.join(['(features->W-%d (node->feature-%d node1) (node->feature-%d node2))' % (d,d,d) for d in range(self.D)]) + ')))')) 
         # Create relation evaluation function
         self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
        
