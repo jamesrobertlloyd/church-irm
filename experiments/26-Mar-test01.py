@@ -12,6 +12,5 @@
 'intermediate_iter' : 1,
 'core_type' : 'c1',
 'cores_per_job' : 1,
-'n_restarts' : 3,
-'local_computation' : False
+'n_restarts' : 1
 }

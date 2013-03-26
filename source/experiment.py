@@ -47,7 +47,8 @@ def exp_param_defaults(exp_params):
                 'use_realtime_cores' : False,
                 'n_realtime_cores' : 1,
                 'max_realtime_time' : 1, # In hours - integer
-                'release_realtime_cores' : True} 
+                'release_realtime_cores' : True,
+                'local_computation' : True} 
     # Iterate through default key-value pairs, setting all unset keys
     for key, value in defaults.iteritems():
         if not key in exp_params:
@@ -119,6 +120,7 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
                         _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
     result = cloud.result(job_id)     
+    #result = network_cv_timing_run(data, model_class, exp_params, model_params) 
     runtime = result['runtime']     
     max_memory = cloud.info(job_id, ['memory'])[job_id]['memory.max_usage'] #result['max_memory']            
     # Map random restarts to picloud
@@ -174,8 +176,10 @@ def run_experiment_file(filename, verbose=True):
     if not os.path.isdir(exp_params['results_dir']):
         os.makedirs(exp_params['results_dir'])
         
-    # Spin up realtime cores if desired
-    if exp_params['use_realtime_cores']:
+    # Spin up realtime cores if desired or set simulator mode
+    if exp_params['local_computation']:
+        cloud.start_simulator()
+    elif exp_params['use_realtime_cores']:
         if verbose:
             print 'Requesting realtime cores'
         realtime_request = cloud.realtime.request(type=exp_params['core_type'], cores=exp_params['n_realtime_cores'], max_duration=exp_params['max_realtime_time'])
@@ -198,23 +202,28 @@ def run_experiment_file(filename, verbose=True):
                         if verbose:
                             print model
                             print model_params
-                        threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
-                        threads[-1].start()
+                        if not exp_params['local_computation']:
+                            threads.append(threading.Thread(target=network_cv_fold, args=(data_file, data_dir, model, exp_params, model_params)))
+                            threads[-1].start()
+                        else:
+                            # Threads upset Venture it would appear
+                            network_cv_fold(data_file, data_dir, model, exp_params, model_params)
                         
         if verbose:
             print 'Number of child threads = %d' % len(threads)
-                
-        # Wait for threads to complete
-        time.sleep(10) # Avoid race conditions
-        threads_finished = [False] * len(threads)
-        while not all(threads_finished):
-            for i, thread in enumerate(threads):
-                if not threads_finished[i]:
-                    if not thread.is_alive():
-                        threads_finished[i] = True
-            print '%03d of %03d threads complete' % (sum(threads_finished), len(threads_finished))
-            if not all(threads_finished):
-                time.sleep(30)
+          
+        if not exp_params['local_computation']:        
+            # Wait for threads to complete
+            time.sleep(10) # Avoid race conditions
+            threads_finished = [False] * len(threads)
+            while not all(threads_finished):
+                for i, thread in enumerate(threads):
+                    if not threads_finished[i]:
+                        if not thread.is_alive():
+                            threads_finished[i] = True
+                print '%03d of %03d threads complete' % (sum(threads_finished), len(threads_finished))
+                if not all(threads_finished):
+                    time.sleep(30)
                 
     finally:
     
