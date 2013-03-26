@@ -142,7 +142,7 @@ class finite_LFRM(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'Additive_IRM_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        return 'finite_LFRM_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -155,13 +155,13 @@ class finite_LFRM(venture_model):
         for d in range(self.D):
             # Instantiate feature probabilities
             self.RIPL.assume('alpha-%d' % d, parse('%s' % self.alpha))
-            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha-%d %d) 1)' % (d, d)))
+            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha-%d %d) 1)' % (d, self.D)))
             # Create feature assignment lookup function
             self.RIPL.assume('node->feature-%d' % d, parse('(mem (lambda (node) (bernoulli theta-%d)))' % d))
             
         # Create feature interaction probability lookup function
         self.RIPL.assume('sigma', parse('%s' % self.sigma))
-        self.RIPL.assume('features->W' % d, parse('(mem (lambda (feature1 feature2) (normal 0 sigma)))')) 
+        self.RIPL.assume('features->W', parse('(mem (lambda (feature1 feature2) (normal 0 sigma)))')) 
         # Create relation probability function - matrix multiplication with binary outer matrices   
         self.RIPL.assume('p-friends', parse('(lambda (node1 node2) (logistic (+ bias ' + \
                                                                                 ' '.join(['(* (features->W %d %d) (node->feature-%d node1) (node->feature-%d node2))' \
