@@ -68,3 +68,15 @@ self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends n
                                 (cons d (build-Z (- d 1)))
                                 (build-Z (- d 1)) ) ) ))
 (ASSUME Z-n (mem (lambda (n) (build-Z D))))
+(ASSUME zwz (lambda (n1 n2) (apply +
+                                   (map (lambda (d1)
+                                                (apply +
+                                                       (map (lambda (d2)
+                                                                    (w d1 d2) )
+                                                            (Z-n n2) ) ) )
+                                         (Z-n n1) ) )) ; Does this exploit sparsity?
+(ASSUME p (lambda (n1 n2) (logistic (+ bias (zwz n1 n2)))))
+(ASSUME link (lambda (n1 n2) (bernoulli (p n1 n2))))
+
+(OBSERVE (link 1 5) False)
+...
