@@ -150,11 +150,10 @@ class finite_LFRM(venture_model):
 
         self.RIPL.assume('bias', parse('%s' % self.bias))
         self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
+        self.RIPL.assume('alpha', parse('%s' % self.alpha))
         for d in range(self.D):
             # Instantiate feature probabilities
-            #### FIXME - move alpha out of loop!
-            self.RIPL.assume('alpha-%d' % d, parse('%s' % self.alpha))
-            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha-%d %d) 1)' % (d, self.D)))
+            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha %d) 1)' % self.D))
             # Create feature assignment lookup function
             self.RIPL.assume('node->feature-%d' % d, parse('(mem (lambda (node) (bernoulli theta-%d)))' % d))
             
@@ -212,10 +211,10 @@ class finite_2class_ILA(venture_model):
 
         self.RIPL.assume('bias', parse('%s' % self.bias))
         self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
+        self.RIPL.assume('alpha', parse('%s' % self.alpha))
         for d in range(self.D):
             # Instantiate feature probabilities
-            self.RIPL.assume('alpha-%d' % d, parse('%s' % self.alpha))
-            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha-%d %d) 1)' % (d, self.D)))
+            self.RIPL.assume('theta-%d' % d, parse('(beta (/ alpha %d) 1)' % self.D))
             # Create feature assignment lookup function
             self.RIPL.assume('node->feature-%d' % d, parse('(mem (lambda (node) (bernoulli theta-%d)))' % d))
             # Create class interaction probability lookup function
