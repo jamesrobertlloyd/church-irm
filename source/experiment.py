@@ -140,6 +140,7 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
         # Collate results
         results = cloud.result(job_ids)
     else:
+        print 'Performing true runs'
         results = [network_cv_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
     ess_sum = 0
     for i, result in enumerate(results):
