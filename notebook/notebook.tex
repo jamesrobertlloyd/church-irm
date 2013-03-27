@@ -541,7 +541,7 @@ $A : D=5$ & 0.797 & 0.613 & $\mathbf{0.741}$ & 0.757 \\
 \item Evaluate predictive likelihoods and other performance scores
 \end{itemize}
 
-\subsection{Tying hyperparameters 12-Mar-2013}
+\section{Tying hyperparameters 12-Mar-2013}
 
 Fixing the lack of hyperparameter tying, I performed the same experiment with the corrected models.
 These priors have the ability to perform automatic relevance determination and thus might be expected to be less senstive to the dimensionality.
@@ -586,6 +586,59 @@ $A : D=5$ & 0.810 & 0.654 & 0.745 & 0.769 \\
 \item Try to write versions which place a prior on the number of additive/multiplicative components
 \item Evaluate predictive likelihoods and other performance scores
 \item Need restarts / folds to asses statistical significance
+\end{itemize}
+
+\section{Binary feature models 27-Mar-2013}
+
+As a simple test, I modified the additive IRM model, replacing \texttt{node->class} with a \texttt{node->feature} function that returns true or false.
+Note that this is not an LFRM \citep{Miller2009}.
+Table~\ref{tbl:Finite 2-ILA 26-Mar-2013} shows the results.
+
+\begin{table*}[ht!]
+\caption{{\small
+Finite 2-ILA - AUCs
+}}
+\label{tbl:Finite 2-ILA 26-Mar-2013}
+\begin{center}
+\begin{tabular}{c | r r r r}
+Model & Highschool & NIPS & Protein & Dolphins \\
+\hline
+1 & 0.779 & 0.809 & 0.636 & 0.706 \\
+2 & \textbf{0.830} & 0.817 & 0.713 & \textbf{0.728} \\
+3 & 0.810 & \textbf{0.827} & 0.686 & 0.710 \\
+4 & 0.821 & 0.634 & \textbf{0.722} & 0.696 \\
+5 & 0.822 & 0.599 & 0.686 & 0.698 \\
+6 & 0.785 & 0.599 & 0.652 & 0.684
+\end{tabular}
+\end{center}
+\end{table*}
+
+A standard finite approximation to the LFRM was also tried.
+The current implementation is very high memory, preventing a reasonable number of features; currently working with Venture team to reduce memory.
+At the moment, the results in table~\ref{tbl:LFRM 26-Mar-2013} are fairly poor as a result.
+
+\begin{table*}[ht!]
+\caption{{\small
+Finite LFRM - AUCs
+}}
+\label{tbl:LFRM 26-Mar-2013}
+\begin{center}
+\begin{tabular}{c | r r r r}
+Model & Highschool & NIPS & Protein & Dolphins \\
+\hline
+1 & 0.691 & 0.514 & 0.554 & 0.446 \\
+2 & \textbf{0.714} & \textbf{0.560} & 0.644 & \textbf{0.720} \\
+3 & 0.697 & 0.551 & \textbf{0.663} & 0.609 \\
+4 & 0.694 & 0.566 & 0.629 & 0.671
+\end{tabular}
+\end{center}
+\end{table*}
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Reduce memory requirements of LFRM, a task very much related to\ldots
+\item \ldots try to write versions which place a prior on the number of additive/multiplicative components
 \end{itemize}
 
 \newpage
