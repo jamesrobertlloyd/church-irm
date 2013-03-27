@@ -148,7 +148,8 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
         else:
             max_memory = max(max_memory, result['max_memory'])
         ess_sum += result['ess']
-    overall_prediction = list(overall_prediction.mean(axis=1)) #### FIXME - fails when only one column
+    if len(results) > 1: # Not necessary when only one restart
+        overall_prediction = list(overall_prediction.mean(axis=1))
     # Score results
     roc_data = []
     for (true_link, prediction) in zip(truth, overall_prediction):
