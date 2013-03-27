@@ -188,8 +188,66 @@ class finite_LFRM(venture_model):
             an_id = self.RIPL.predict(parse('(p-friends %d %d)' % (i, j)))[0]
             missing_links.append(an_id)
         return (truth, missing_links)
+                    
+class finite_LFRM_scheme(venture_model):
+    
+    def __init__(self, D=1, alpha=1, bias='(normal 0 4)', sigma=1, symmetric=True):
+        self.D = D
+        self.alpha = alpha
+        self.bias = bias
+        self.sigma = sigma
+        self.symmetric = symmetric
         
-
+    def description(self):
+        return 'finite_LFRM_scheme_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        
+    def create_RIPL(self):
+        # Create RIPL and clear any previous session
+        import venture_engine
+        self.RIPL = venture_engine
+        self.RIPL.clear()
+        
+        self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
+        self.RIPL.assume('list-sum', parse('(lambda (lst) (if (> (length lst) 1) (+ (first lst) (list-sum (rest lst))) (if (= (length lst) 1) (first lst) 0)))')) #### TODO - replace me if possible
+        self.RIPL.assume('map', parse('(lambda (f lst) (if (empty? lst) (list) (cons (f (first lst)) (map f (rest lst)))))')) #### TODO - replace me if possible
+        
+        self.RIPL.assume('D', parse('%s' % self.D))
+        self.RIPL.assume('alpha', parse('%s' % self.alpha))
+        self.RIPL.assume('bias', parse('%s' % self.bias))
+        self.RIPL.assume('sigma', parse('%s' % self.sigma))
+        
+        self.RIPL.assume('theta', parse('(mem (lambda (d) (beta (/ alpha D) 1)))'))
+        self.RIPL.assume('w', parse('(mem (lambda (d1 d2) (normal 0 sigma)))'))
+        
+        self.RIPL.assume('build-Z', parse('(lambda (d) (if (= d 0) (list) (if (bernoulli (theta d)) (cons d (build-Z (- d 1))) (build-Z (- d 1)))))'))
+        self.RIPL.assume('Z-n', parse('(mem (lambda (n) (build-Z D)))'))
+        
+        self.RIPL.assume('zwz', parse('(lambda (n1 n2) (list-sum (map (lambda (d1) (list-sum (map (lambda (d2) (w d1 d2)) (Z-n n2)))) (Z-n n1))))'))
+        
+        self.RIPL.assume('p-friends', parse('(lambda (n1 n2) (logistic (+ bias (zwz n1 n2))))'))
+        self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
+       
+    def observe_data(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        for (i,j,v) in observations:
+            if v:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'true')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'true')
+            else:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'false')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'false')
+                    
+    def set_predictions(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        truth = []
+        missing_links = []
+        for (i,j,v) in observations:
+            truth.append(int(v))
+            an_id = self.RIPL.predict(parse('(p-friends %d %d)' % (i, j)))[0]
+            missing_links.append(an_id)
+        return (truth, missing_links)
                     
 class finite_2class_ILA(venture_model):
     
