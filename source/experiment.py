@@ -117,10 +117,12 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     data = utils.data.load_network_cv_data(data_file)
     truth = data['truth']
     # Perform a timing run
-    job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
-                        _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
-    result = cloud.result(job_id)     
-    #result = network_cv_timing_run(data, model_class, exp_params, model_params) 
+    if not exp_params['local_computation']:
+        job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
+                            _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+        result = cloud.result(job_id)     
+    else:
+        result = network_cv_timing_run(data, model_class, exp_params, model_params)
     runtime = result['runtime']    
     if not exp_params['local_computation']: 
         max_memory = cloud.info(job_id, ['memory'])[job_id]['memory.max_usage']
@@ -128,14 +130,17 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
         max_memory = result['max_memory']            
     # Map random restarts to picloud
     exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * result['time_per_mh_iter']))))
-    job_ids = cloud.map(network_cv_single_run, itertools.repeat(data, exp_params['n_restarts']), \
-                                               itertools.repeat(model_class, exp_params['n_restarts']), \
-                                               itertools.repeat(exp_params, exp_params['n_restarts']), \
-                                               itertools.repeat(model_params, exp_params['n_restarts']), \
-                                               _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
-                                               _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
-    # Collate results
-    results = cloud.result(job_ids)
+    if not exp_params['local_computation']:
+        job_ids = cloud.map(network_cv_single_run, itertools.repeat(data, exp_params['n_restarts']), \
+                                                   itertools.repeat(model_class, exp_params['n_restarts']), \
+                                                   itertools.repeat(exp_params, exp_params['n_restarts']), \
+                                                   itertools.repeat(model_params, exp_params['n_restarts']), \
+                                                   _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
+                                                   _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+        # Collate results
+        results = cloud.result(job_ids)
+    else:
+        results = [network_cv_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
     ess_sum = 0
     for i, result in enumerate(results):
         if i == 0:
@@ -185,7 +190,8 @@ def run_experiment_file(filename, verbose=True):
         
     # Spin up realtime cores if desired or set simulator mode
     if exp_params['local_computation']:
-        cloud.start_simulator()
+        pass
+        #cloud.start_simulator()
     elif exp_params['use_realtime_cores']:
         if verbose:
             print 'Requesting realtime cores'
