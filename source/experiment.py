@@ -121,8 +121,11 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
                         _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
     result = cloud.result(job_id)     
     #result = network_cv_timing_run(data, model_class, exp_params, model_params) 
-    runtime = result['runtime']     
-    max_memory = cloud.info(job_id, ['memory'])[job_id]['memory.max_usage'] #result['max_memory']            
+    runtime = result['runtime']    
+    if not exp_params['local_computation']: 
+        max_memory = cloud.info(job_id, ['memory'])[job_id]['memory.max_usage']
+    else:
+        max_memory = result['max_memory']            
     # Map random restarts to picloud
     exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * result['time_per_mh_iter']))))
     job_ids = cloud.map(network_cv_single_run, itertools.repeat(data, exp_params['n_restarts']), \
@@ -140,7 +143,10 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
         else:
             overall_prediction = np.column_stack([overall_prediction, result['predictions']])
         runtime += result['runtime'] 
-        max_memory = max(max_memory, cloud.info(job_ids[i], ['memory'])[job_ids[i]]['memory.max_usage']) #result['max_memory'])
+        if not exp_params['local_computation']:
+            max_memory = max(max_memory, cloud.info(job_ids[i], ['memory'])[job_ids[i]]['memory.max_usage'])
+        else:
+            max_memory = max(max_memory, result['max_memory'])
         ess_sum += result['ess']
     overall_prediction = list(overall_prediction.mean(axis=1)) #### FIXME - fails when only one column
     # Score results
