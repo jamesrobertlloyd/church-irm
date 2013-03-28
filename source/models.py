@@ -267,7 +267,7 @@ class var_product_IRM(venture_model):
         self.RIPL.clear()
         
         self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
-        self.RIPL.assume('list-product', parse('(lambda (lst) (if (> (length lst) 1) (* (first lst) (list-product (rest lst))) (if (= (length lst) 1) (first lst) 0)))')) #### TODO - replace me if possible
+        self.RIPL.assume('list-product', parse('(lambda (lst) (if (> (length lst) 1) (* (first lst) (list-product (rest lst))) (if (= (length lst) 1) (first lst) 1)))')) #### TODO - replace me if possible
         self.RIPL.assume('map', parse('(lambda (f lst) (if (empty? lst) (list) (cons (f (first lst)) (map f (rest lst)))))')) #### TODO - replace me if possible
         self.RIPL.assume('iota', parse('(lambda (n) (if (= n 0) (list) (cons n (iota (- n 1)))))')) #### TODO - replace me if possible
         
