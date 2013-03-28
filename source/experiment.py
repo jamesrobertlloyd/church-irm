@@ -139,23 +139,28 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
                                                    _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
                                                    _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
         # Collate results
-        results = cloud.result(job_ids)
+        results = cloud.result(job_ids, ignore_errors=True)
     else:
         print 'Performing true runs'
         results = [network_cv_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
     ess_sum = 0
+    first_result = True
     for i, result in enumerate(results):
-        if i == 0:
-            overall_prediction = result['predictions']
+        if not isinstance(result Exception):
+            if first_result:
+                overall_prediction = result['predictions']
+                first_result = False
+            else:
+                overall_prediction = np.column_stack([overall_prediction, result['predictions']])
+            runtime += result['runtime'] 
+            if not exp_params['local_computation']:
+                max_memory = max(max_memory, cloud.info(job_ids[i], ['memory'])[job_ids[i]]['memory.max_usage'])
+            else:
+                max_memory = max(max_memory, result['max_memory'])
+            ess_sum += result['ess']
         else:
-            overall_prediction = np.column_stack([overall_prediction, result['predictions']])
-        runtime += result['runtime'] 
-        if not exp_params['local_computation']:
-            max_memory = max(max_memory, cloud.info(job_ids[i], ['memory'])[job_ids[i]]['memory.max_usage'])
-        else:
-            max_memory = max(max_memory, result['max_memory'])
-        ess_sum += result['ess']
-    if len(results) > 1: # Not necessary when only one restart
+            print 'Warning, job %d failed' % (i + 1)
+    if not isinstance(overall_prediction, list): # This will occur when only one successful restart
         overall_prediction = list(overall_prediction.mean(axis=1))
     # Score results
     roc_data = []
