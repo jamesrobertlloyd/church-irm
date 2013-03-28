@@ -146,7 +146,7 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     ess_sum = 0
     first_result = True
     for i, result in enumerate(results):
-        if not isinstance(result Exception):
+        if not isinstance(result, Exception):
             if first_result:
                 overall_prediction = result['predictions']
                 first_result = False
