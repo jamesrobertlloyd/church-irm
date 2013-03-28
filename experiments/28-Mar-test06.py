@@ -10,7 +10,7 @@
 'max_burn_time' : 60,
 'max_sample_time' : 60,
 'intermediate_iter' : 1,
-'core_type' : 'c2',
+'core_type' : 'f2',
 'cores_per_job' : 1,
 'n_restarts' : 5,
 'local_computation' : False
