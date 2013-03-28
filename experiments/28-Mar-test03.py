@@ -4,7 +4,7 @@
 'results_dir' : '../results/28-Mar-test03/',
 'data_dirs' : ['../data/test/'],
 'models' : [models.finite_LFRM_scheme]*1,
-'model_params' : [{'D' : '(uniform-discrete 2 5)'}],
+'model_params' : [{'D' : '(uniform-discrete 2 5)', 'alpha' : '(uniform-continuous 0.0001 4.0)'}],
 'n_samples' : 100,
 'max_initial_run_time' : 30,
 'max_burn_time' : 60,
