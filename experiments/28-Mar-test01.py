@@ -1,7 +1,7 @@
 {
 'type' : 'network_cv',
 'verbose' : False,
-'results_dir' : '../results/27-Mar-test01/',
+'results_dir' : '../results/28-Mar-test01/',
 'data_dirs' : ['../data/test/'],
 'models' : [models.finite_LFRM_scheme]*5,
 'model_params' : [{'D' : 1, 'alpha' : '(uniform-continuous 0.0001 3.0)'}, {'D' : 2, 'alpha' : '(uniform-continuous 0.0001 3.0)'}, {'D' : 3, 'alpha' : '(uniform-continuous 0.0001 3.0)'}, {'D' : 4, 'alpha' : '(uniform-continuous 0.0001 3.0)'}, {'D' : 5, 'alpha' : '(uniform-continuous 0.0001 3.0)'}],
