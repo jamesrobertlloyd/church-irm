@@ -17,7 +17,8 @@ import pickle
 
 from venture_engine_requirements import *
 import cloud
-cloud_environment = 'venture-2-6'
+#cloud_environment = 'venture-2-6'
+cloud_environment = '/MITPCP/venture-2-6'
 
 import models
 import sample
