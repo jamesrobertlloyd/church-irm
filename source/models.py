@@ -25,7 +25,7 @@ class product_IRM(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'Product_IRM_D=%d_alpha=%s_beta=%s_sym=%s' % (self.D, self.alpha, self.beta, self.symmetric)
+        return 'Product_IRM_D=%s_alpha=%s_beta=%s_sym=%s' % (self.D, self.alpha, self.beta, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -82,7 +82,7 @@ class additive_IRM(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'Additive_IRM_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        return 'Additive_IRM_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -140,7 +140,7 @@ class finite_LFRM(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'finite_LFRM_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        return 'finite_LFRM_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -199,7 +199,7 @@ class finite_LFRM_scheme(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'finite_LFRM_scheme_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        return 'finite_LFRM_scheme_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -259,7 +259,7 @@ class finite_2class_ILA(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'finite_2class_ILA_D=%d_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        return 'finite_2class_ILA_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
