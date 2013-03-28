@@ -189,7 +189,7 @@ class finite_LFRM(venture_model):
             missing_links.append(an_id)
         return (truth, missing_links)
                     
-class finite_LFRM_scheme(venture_model):
+class var_finite_LFRM(venture_model):
     
     def __init__(self, D=1, alpha=1, bias='(normal 0 4)', sigma=1, symmetric=True):
         self.D = D
@@ -199,7 +199,7 @@ class finite_LFRM_scheme(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'finite_LFRM_scheme_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        return 'var_finite_LFRM_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
