@@ -230,11 +230,11 @@ def cold_start_fold(data_file, data_dir, model_class, exp_params, model_params):
     truth = data['truth']
     # Perform a timing run
     if not exp_params['local_computation']:
-        job_id = cloud.call(network_cv_timing_run, data, model_class, exp_params, model_params, \
+        job_id = cloud.call(cold_start_timing_run, data, model_class, exp_params, model_params, \
                             _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
         result = cloud.result(job_id)     
     else:
-        result = network_cv_timing_run(data, model_class, exp_params, model_params)
+        result = cold_start_timing_run(data, model_class, exp_params, model_params)
     runtime = result['runtime']    
     if not exp_params['local_computation']: 
         max_memory = cloud.info(job_id, ['memory'])[job_id]['memory.max_usage']
@@ -243,7 +243,7 @@ def cold_start_fold(data_file, data_dir, model_class, exp_params, model_params):
     # Map random restarts to picloud
     exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * result['time_per_mh_iter']))))
     if not exp_params['local_computation']:
-        job_ids = cloud.map(network_cv_single_run, itertools.repeat(data, exp_params['n_restarts']), \
+        job_ids = cloud.map(cold_start_single_run, itertools.repeat(data, exp_params['n_restarts']), \
                                                    itertools.repeat(model_class, exp_params['n_restarts']), \
                                                    itertools.repeat(exp_params, exp_params['n_restarts']), \
                                                    itertools.repeat(model_params, exp_params['n_restarts']), \
@@ -253,7 +253,7 @@ def cold_start_fold(data_file, data_dir, model_class, exp_params, model_params):
         results = cloud.result(job_ids, ignore_errors=True)
     else:
         print 'Performing true runs'
-        results = [network_cv_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
+        results = [cold_start_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
     ess_sum = 0
     first_result = True
     for i, result in enumerate(results):
