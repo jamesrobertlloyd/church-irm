@@ -5,9 +5,9 @@ rand('state',seed);
 directory = '../../data/raw/';
 
 %n = 50;
-fold_directory = '../../data/full_networks/';
+fold_directory = '../../data/cold_start_only/';
 
-prop_observed = 1.0;
+prop_observed = 0.8;
 file_list = dir(directory);
 
 %n_obs = n * (n - 1) / 2;
@@ -22,11 +22,12 @@ for i = 1:length(file_list)
         A = csvread([directory a_file.name]);
         
         n = size(A, 1);
+        m = size(A, 2);
         n_obs = n * (n - 1) / 2;
         
-        perm = randperm(n_obs);
-        mask = zeros(n_obs, 1);
-        for ii = 1:(n_obs*prop_observed)
+        perm = randperm(n);
+        mask = zeros(n, 1);
+        for ii = 1:(n*prop_observed)
             mask(perm(ii)) = 1;
         end
         
@@ -38,8 +39,8 @@ for i = 1:length(file_list)
         test_v = [];
         count = 1;
         for ii = 1:n
-            for jj = (ii+1):n
-                if mask(count)
+            for jj = 1:m
+                if mask(ii)
                     train_i = [train_i; ii];
                     train_j = [train_j; jj];
                     train_v = [train_v; A(ii,jj)];
