@@ -16,7 +16,7 @@ class venture_model:
     def observe_data(self, observations):
         raise Exception('Not implemented')
         
-class social_collab_IRM(venture_model):
+class social_collab_prod_IRM(venture_model):
     
     def __init__(self, D=1, alpha=1, beta=1, symmetric=True):
         self.D = D
@@ -25,7 +25,7 @@ class social_collab_IRM(venture_model):
         self.symmetric = symmetric
         
     def description(self):
-        return 'social_collab_IRM_D=%s_alpha=%s_beta=%s_sym=%s' % (self.D, self.alpha, self.beta, self.symmetric)
+        return 'social_collab_prod_IRM_D=%s_alpha=%s_beta=%s_sym=%s' % (self.D, self.alpha, self.beta, self.symmetric)
         
     def create_RIPL(self):
         # Create RIPL and clear any previous session
@@ -195,6 +195,78 @@ class additive_IRM(venture_model):
         for (i,j,v) in observations:
             truth.append(int(v))
             an_id = self.RIPL.predict(parse('(p-friends %d %d)' % (i, j)))[0]
+            missing_links.append(an_id)
+        return (truth, missing_links)
+        
+class social_collab_add_IRM(venture_model):
+    
+    def __init__(self, D=1, alpha=1, bias='(normal 0 4)', sigma=1, symmetric=True):
+        self.D = D
+        self.alpha = alpha
+        self.bias = bias
+        self.sigma = sigma
+        self.symmetric = symmetric
+        
+    def description(self):
+        return 'social_collab_add_IRM_D=%s_alpha=%s_bias=%s_sigma=%s_sym=%s' % (self.D, self.alpha, self.bias, self.sigma, self.symmetric)
+        
+    def create_RIPL(self):
+        # Create RIPL and clear any previous session
+        import venture_engine
+        self.RIPL = venture_engine
+        self.RIPL.clear()
+
+        self.RIPL.assume('logistic', parse('(lambda (x) (/ 1 (+ 1 (power 2.71828 (- 0 x)))))')) #### TODO - replace me ASAP
+        
+        self.RIPL.assume('bias-social', parse('%s' % self.bias))
+        self.RIPL.assume('bias-collab', parse('%s' % self.bias))
+        
+        for d in range(self.D):
+            # Instantiate CRPs
+            self.RIPL.assume('alpha-social-%d' % d, parse('%s' % self.alpha))
+            self.RIPL.assume('cluster-crp-social-%d' % d, parse('(CRP/make alpha-social-%d)' % d))
+            self.RIPL.assume('alpha-item-%d' % d, parse('%s' % self.alpha))
+            self.RIPL.assume('cluster-crp-item-%d' % d, parse('(CRP/make alpha-item-%d)' % d))
+            # Create class assignment lookup functions
+            self.RIPL.assume('person->class-%d' % d, parse('(mem (lambda (nodes) (cluster-crp-social-%d)))' % d))
+            self.RIPL.assume('item->class-%d' % d, parse('(mem (lambda (nodes) (cluster-crp-item-%d)))' % d))
+            # Create class interaction probability lookup function
+            self.RIPL.assume('sigma-social-%d' % d, parse('%s' % self.sigma))
+            self.RIPL.assume('sigma-collab-%d' % d, parse('%s' % self.sigma))
+            self.RIPL.assume('social-class->parameters-%d' % d, parse('(mem (lambda (class1 class2) (normal 0 sigma-social-%d)))' % d)) 
+            self.RIPL.assume('social-item-class->parameters-%d' % d, parse('(mem (lambda (class1 class2) (normal 0 sigma-collab-%d)))' % d)) 
+         
+        # Create relation probability function    
+        self.RIPL.assume('p-friends', parse('(lambda (person1 person2) (logistic (+ bias ' + ' '.join(['(social-class->parameters-%d (person->class-%d person1) (person->class-%d person2))'  % (d,d,d) for d in range(self.D)]) + ')))'))
+        self.RIPL.assume('p-likes', parse('(lambda (person item) (logistic (+ bias ' + ' '.join(['(social-item-class->parameters-%d (person->class-%d person) (item->class-%d item))'  % (d,d,d) for d in range(self.D)]) + ')))'))
+        # Create relation evaluation function
+        self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
+        self.RIPL.assume('likes', parse('(lambda (node1 node2) (bernoulli (p-likes node1 node2)))')) 
+       
+    def observe_data(self, observations):
+        '''Assumes keys ['social'] and ['collab'] that refer to triples of (i, j, v) for node i, node j and value v'''
+        for (i,j,v) in observations['social']:
+            if v:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'true')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'true')
+            else:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'false')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'false')
+        for (i,j,v) in observations['collab']:
+            if v:
+                self.RIPL.observe(parse('(likes %d %d)' % (i, j)), 'true')
+            else:
+                self.RIPL.observe(parse('(likes %d %d)' % (i, j)), 'false')
+                    
+    def set_predictions(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        truth = []
+        missing_links = []
+        for (i,j,v) in observations['collab']:
+            truth.append(int(v))
+            an_id = self.RIPL.predict(parse('(p-likes %d %d)' % (i, j)))[0]
             missing_links.append(an_id)
         return (truth, missing_links)
                     
