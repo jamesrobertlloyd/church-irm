@@ -237,8 +237,8 @@ class social_collab_add_IRM(venture_model):
             self.RIPL.assume('social-item-class->parameters-%d' % d, parse('(mem (lambda (class1 class2) (normal 0 sigma-collab-%d)))' % d)) 
          
         # Create relation probability function    
-        self.RIPL.assume('p-friends', parse('(lambda (person1 person2) (logistic (+ bias ' + ' '.join(['(social-class->parameters-%d (person->class-%d person1) (person->class-%d person2))'  % (d,d,d) for d in range(self.D)]) + ')))'))
-        self.RIPL.assume('p-likes', parse('(lambda (person item) (logistic (+ bias ' + ' '.join(['(social-item-class->parameters-%d (person->class-%d person) (item->class-%d item))'  % (d,d,d) for d in range(self.D)]) + ')))'))
+        self.RIPL.assume('p-friends', parse('(lambda (person1 person2) (logistic (+ bias-social ' + ' '.join(['(social-class->parameters-%d (person->class-%d person1) (person->class-%d person2))'  % (d,d,d) for d in range(self.D)]) + ')))'))
+        self.RIPL.assume('p-likes', parse('(lambda (person item) (logistic (+ bias-collab ' + ' '.join(['(social-item-class->parameters-%d (person->class-%d person) (item->class-%d item))'  % (d,d,d) for d in range(self.D)]) + ')))'))
         # Create relation evaluation function
         self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
         self.RIPL.assume('likes', parse('(lambda (node1 node2) (bernoulli (p-likes node1 node2)))')) 
