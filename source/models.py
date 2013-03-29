@@ -16,6 +16,72 @@ class venture_model:
     def observe_data(self, observations):
         raise Exception('Not implemented')
         
+class social_collab_IRM(venture_model):
+    
+    def __init__(self, alpha=1, beta=1, symmetric=True):
+        self.alpha = alpha
+        self.beta = beta
+        self.symmetric = symmetric
+        
+    def description(self):
+        return 'social_collab_IRM_alpha=%s_beta=%s_sym=%s' % (self.alpha, self.beta, self.symmetric)
+        
+    def create_RIPL(self):
+        # Create RIPL and clear any previous session
+        import venture_engine
+        self.RIPL = venture_engine
+        self.RIPL.clear()
+
+        # Instantiate CRPs
+        self.RIPL.assume('alpha-social', parse('%s' % self.alpha))
+        self.RIPL.assume('cluster-crp-social', parse('(CRP/make alpha-social)'))
+        self.RIPL.assume('alpha-item', parse('%s' % self.alpha))
+        self.RIPL.assume('cluster-crp-item', parse('(CRP/make alpha-item)'))
+        # Create class assignment lookup functions
+        self.RIPL.assume('person->class', parse('(mem (lambda (nodes) (cluster-crp-social)))'))
+        self.RIPL.assume('item->class', parse('(mem (lambda (nodes) (cluster-crp-item)))'))
+        # Create class interaction probability lookup function
+        self.RIPL.assume('beta-a-social', parse('%s' % self.beta))
+        self.RIPL.assume('beta-b-social', parse('%s' % self.beta))
+        self.RIPL.assume('beta-a-collab', parse('%s' % self.beta))
+        self.RIPL.assume('beta-b-collab', parse('%s' % self.beta))
+        self.RIPL.assume('social-class->parameters', parse('(mem (lambda (class1 class2) (beta beta-a-social beta-b-social)))'))
+        self.RIPL.assume('social-item-class->parameters', parse('(mem (lambda (class1 class2) (beta beta-a-collab beta-b-collab)))')) 
+         
+        # Create relation probability function    
+        self.RIPL.assume('p-friends', parse('(lambda (person1 person2) (social-class->parameters (person->class person1) (person->class person2)))'))
+        self.RIPL.assume('p-likes', parse('(lambda (person item) (social-item-class->parameters (person->class person) (item->class item)))'))
+        # Create relation evaluation function
+        self.RIPL.assume('friends', parse('(lambda (node1 node2) (bernoulli (p-friends node1 node2)))')) 
+        self.RIPL.assume('likes', parse('(lambda (node1 node2) (bernoulli (p-likes node1 node2)))')) 
+       
+    def observe_data(self, observations):
+        '''Assumes keys ['social'] and ['collab'] that refer to triples of (i, j, v) for node i, node j and value v'''
+        for (i,j,v) in observations['social']:
+            if v:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'true')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'true')
+            else:
+                self.RIPL.observe(parse('(friends %d %d)' % (i, j)), 'false')
+                if self.symmetric:
+                    self.RIPL.observe(parse('(friends %d %d)' % (j, i)), 'false')
+        for (i,j,v) in observations['collab']:
+            if v:
+                self.RIPL.observe(parse('(likes %d %d)' % (i, j)), 'true')
+            else:
+                self.RIPL.observe(parse('(likes %d %d)' % (i, j)), 'false')
+                    
+    def set_predictions(self, observations):
+        '''Assumes triples of (i, j, v) for node i, node j and value v'''
+        truth = []
+        missing_links = []
+        for (i,j,v) in observations['collab']:
+            truth.append(int(v))
+            an_id = self.RIPL.predict(parse('(p-likes %d %d)' % (i, j)))[0]
+            missing_links.append(an_id)
+        return (truth, missing_links)
+        
 class product_IRM(venture_model):
     
     def __init__(self, D=1, alpha=1, beta=1, symmetric=True):
