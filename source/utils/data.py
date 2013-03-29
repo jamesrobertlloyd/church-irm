@@ -29,7 +29,7 @@ def load_network_cv_data(file_name):
         
 def load_cold_start_data(file_name):
     data = load_dictionary(file_name)
-    observed = {'social' : list(zip(data['social_i'].flat, data['social_j'].flat, data['social_v'].flat)),
+    observed = {'social' : list(zip(data['social_train_i'].flat, data['social_train_j'].flat, data['social_train_v'].flat)),
                 'collab' : list(zip(data['collab_train_i'].flat, data['collab_train_j'].flat, data['collab_train_v'].flat))}
     missing  = {'collab' : list(zip(data['collab_test_i'].flat,  data['collab_test_j'].flat,  data['collab_test_v'].flat))}
     truth = list(data['collab_test_v'].flat)
