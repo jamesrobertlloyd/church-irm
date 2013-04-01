@@ -373,6 +373,6 @@ def run_experiment_file(filename, verbose=True):
         
     
     # Call a post processing routine to display output
-    postprocessing.print_basic_summary(exp_params['results_dir'])
+    postprocessing.print_all_AUCs(exp_params['results_dir'])
     print 'Wall clock time = %03.1f minutes' % ((time.time() - start) / 60)
 
