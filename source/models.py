@@ -84,6 +84,8 @@ class social_collab_prod_IRM(venture_model):
             missing_links.append(an_id)
         return (truth, missing_links)
         
+social_collab_IRM = social_collab_prod_IRM # Backward compatibility
+        
 class product_IRM(venture_model):
     
     def __init__(self, D=1, alpha=1, beta=1, symmetric=True):

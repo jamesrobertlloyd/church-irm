@@ -648,6 +648,112 @@ Need to work on appropriate sparsity inducing fixed size priors that do not requ
 If they are absolutely necessary, we should try to get them implemented as primitives.
 But Dan thinks there is a more worrying underlying problem\ldots
 
+\section{First try on cold start problems 29-Mar-2013}
+
+Data was complete social network and cold start tag data (think Facebook `likes') in the journal article version of AH paper (different fold at the moment).
+Trying to see if the hypothesis that additive dominates is true.
+Results are mixed but pointing in roughly the correct direction.
+
+First, product IRMs, would appear to be a poor model
+
+\begin{table*}[ht!]
+\caption{{\small
+Product IRMs on cold start - AUCs
+}}
+\label{tbl:Prod-IRM 29-Mar-2013}
+\begin{center}
+\begin{tabular}{c | r}
+Model & AUC \\
+\hline
+1 & 0.505 \\
+3 & 0.468 \\
+5 & 0.508 
+\end{tabular}
+\end{center}
+\end{table*}
+
+Then some additive models (with long run times since I had scared myself with previous results) had some success.
+Inspecting individual AUCs from each repeat showed that there was still a lot of variance.
+
+\begin{table*}[ht!]
+\caption{{\small
+Additive IRMs - cold start - AUCs
+}}
+\label{tbl:Add-IRM 29-Mar-2013}
+\begin{center}
+\begin{tabular}{c c c | r}
+Dimension & Repeats &  Sample time & AUC\\
+\hline
+10 & 1 & 5 hours & 0.606 \\
+10 & 25 & 50 minutes & 0.646 
+\end{tabular}
+\end{center}
+\end{table*}
+
+\section{More cold start 01-Apr-2013}
+
+I then tried to explore if lots of random restarts was good, or if it was about sample time.
+This appears to be suggesting that we cannot take shortcuts with computation, either lots of restarts or lots of sample time is required (and probably preferably both).
+
+\begin{table*}[ht!]
+\caption{{\small
+Additive IRMs - cold start - AUCs
+}}
+\label{tbl:Add-IRM 01-Apr-2013}
+\begin{center}
+\begin{tabular}{c c c | r}
+Dimension & Repeats &  Sample time & AUC\\
+\hline
+1 & 100 & 2 minutes & 0.550 \\
+10 & 25 & 2 minutes & 0.495 \\
+10 & 10 & 10 minutes & 0.496 \\
+10 & 10 & 2 minutes & 0.605 \\
+10 & 1 & 5 hours & 0.606 \\
+10 & 100 & 2 minutes & 0.612 \\
+10 & 25 & 50 minutes & 0.646 
+\end{tabular}
+\end{center}
+\end{table*}
+
+Feeling mildly confident that lots of restarts with small computations might say something useful, I compared product, additive and different dimensionalities; 2 minutes of sampling and 100 restarts.
+
+\begin{table*}[ht!]
+\caption{{\small
+Additive and product IRMs - cold start - AUCs
+}}
+\label{tbl:IRM 01-Apr-2013}
+\begin{center}
+\begin{tabular}{c c | r}
+Type & D & AUC\\
+\hline
+A & 1 & 0.526 \\
+A & 3 & 0.451 \\
+A & 5 & 0.595 \\
+A & 7 & 0.619 \\
+P & 1 & 0.453 \\
+P & 3 & 0.500 \\
+P & 5 & 0.513 \\
+P & 7 & 0.514 
+\end{tabular}
+\end{center}
+\end{table*}
+
+Clearly the numbers are noisy, but they do not contradict the initial hypothesis that an additive model would be the better performer on this joint modelling task (since it has the capacity not to be distracted by 
+
+\subsection{Conclusions}
+
+\begin{itemize}
+\item Main hypothesis has some evidence in favour of it
+\item Computations getting moderately large (memory requirements force using expensive cores)
+\end{itemize}
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Run a version of this experiment with five fold validations
+\item Start costing larger scale experiments
+\end{itemize}
+
 \newpage
 
 %\appendix
