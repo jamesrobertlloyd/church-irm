@@ -49,7 +49,8 @@ def exp_param_defaults(exp_params):
                 'n_realtime_cores' : 1,
                 'max_realtime_time' : 1, # In hours - integer
                 'release_realtime_cores' : True,
-                'local_computation' : True} 
+                'local_computation' : True,
+                'thread_wait' : 5 # Sleep time between threads, to prevent excessive communication to cloud} 
     # Iterate through default key-value pairs, setting all unset keys
     for key, value in defaults.iteritems():
         if not key in exp_params:
@@ -343,6 +344,7 @@ def run_experiment_file(filename, verbose=True):
                         if not exp_params['local_computation']:
                             threads.append(threading.Thread(target=cold_start_fold, args=(data_file, data_dir, model, exp_params, model_params)))
                             threads[-1].start()
+                            time.sleep(exp_params['thread_wait'])
                         else:
                             # Threads upset Venture it would appear
                             cold_start_fold(data_file, data_dir, model, exp_params, model_params)
