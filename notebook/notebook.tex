@@ -650,11 +650,11 @@ But Dan thinks there is a more worrying underlying problem\ldots
 
 \section{First try on cold start problems 29-Mar-2013}
 
-Data was complete social network and cold start tag data (think Facebook `likes') in the journal article version of AH paper (different fold at the moment).
+Data: complete social network and cold start tag data (think Facebook `likes') in the journal article version of AH paper (different fold at the moment).
 Trying to see if the hypothesis that additive dominates is true.
 Results are mixed but pointing in roughly the correct direction.
 
-First, product IRMs, would appear to be a poor model
+First, product IRMs, would appear to be a poor model (10 restarts, 20 minutes of sampling).
 
 \begin{table*}[ht!]
 \caption{{\small
@@ -673,7 +673,7 @@ Model & AUC \\
 \end{table*}
 
 Then some additive models (with long run times since I had scared myself with previous results) had some success.
-Inspecting individual AUCs from each repeat showed that there was still a lot of variance.
+Inspecting individual AUCs from each repeat showed that there was still a lot of variance in individual AUCs (\ie the chains are not mixing as measured by AUC).
 
 \begin{table*}[ht!]
 \caption{{\small
@@ -738,7 +738,7 @@ P & 7 & 0.514
 \end{center}
 \end{table*}
 
-Clearly the numbers are noisy, but they do not contradict the initial hypothesis that an additive model would be the better performer on this joint modelling task (since it has the capacity not to be distracted by 
+Clearly the numbers are noisy, but they do not contradict the initial hypothesis that an additive model would be the better performer on this joint modelling task (since it has the capacity not to be distracted by modelling the social network).
 
 \subsection{Conclusions}
 
@@ -756,8 +756,38 @@ Clearly the numbers are noisy, but they do not contradict the initial hypothesis
 
 \section{More cold start 02-Apr-2013}
 
-2 minutes, 100 restarts, all folds.
-What happens now?
+I then extended the experiments to five fold cross validations.
+Thinking that many short chains gave an indication of performance I used 2 minutes and 100 restarts.
+\begin{table*}[ht!]
+\caption{{\small
+Additive and product IRMs - cold start - AUCs
+}}
+\label{tbl:IRM 02-Apr-2013}
+\begin{center}
+\begin{tabular}{c c | r r r r r | r}
+Type & D & Fold 1 & Fold 2 & Fold 3 & Fold 4 & Fold 5 & Average \\
+\hline
+A & 1 & 0.577 & 0.717 & 0.818 & 0.343 & 0.417 & 0.574\\
+A & 3 & 0.487 & 0.612 & 0.456 & 0.500 & 0.495 & 0.510\\
+A & 5 & 0.547 & 0.558 & 0.520 & 0.573 & 0.595 & 0.559\\
+A & 7 & 0.489 & 0.492 & 0.409 & 0.675 & 0.474 & 0.508\\
+P & 1 & 0.481 & 0.617 & 0.745 & 0.262 & 0.338 & 0.488\\
+P & 3 & 0.478 & 0.721 & 0.610 & 0.477 & 0.507 & 0.559\\
+P & 5 & 0.476 & 0.555 & 0.364 & 0.441 & 0.554 & 0.478\\
+P & 7 & 0.515 & 0.580 & 0.495 & 0.347 & 0.603 & 0.508\\
+\end{tabular}
+\end{center}
+\end{table*}
+
+It appears I have been tricked by earlier experiments into thinking that many restarts could outweigh small sampling time.
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Sample for longer - will try a few things but a good way to waste money
+\item Reduce data set size to have a chance of mixing slightly - probably the best idea
+\item Revisit model design - probably best done in conjunction with smaller data sets
+\end{itemize}
 
 \newpage
 

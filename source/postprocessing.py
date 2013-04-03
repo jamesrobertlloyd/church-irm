@@ -2,6 +2,7 @@
 
 import os
 import pickle
+import numpy as np
 
 import models
 
@@ -58,10 +59,10 @@ def latex_AUC_table(results_dir):
             pickle_file.close()
             data[model][data_set] = saved_results['AUC']
     # Dictionary is created, now produce LaTeX string
-    latex_string = 'Model & %s \\\\\n\\hline\n' % ' & '.join(data_sets)
+    latex_string = 'Model & %s \\\\\n\\hline\n' % ' & '.join(data_sets + ['Average'])
     print '          Model ',
-    print ' '.join(['%s' % data_set[:10].ljust(10) for data_set in data_sets])
+    print ' '.join(['%s' % data_set[:10].ljust(10) for data_set in data_sets]) + '   Average'
     for model in models:
-        print '%s  %s' % (model[:15].ljust(15), ' '.join(['     %0.3f' % data[model][data_set] for data_set in data_sets]))
-        latex_string = latex_string + model[:15] + ' & ' + ' & '.join(['%0.3f' % data[model][data_set] for data_set in data_sets]) + ' \\\\\n'
+        print '%s  %s      %0.3f' % (model[:15].ljust(15), ' '.join(['     %0.3f' % data[model][data_set] for data_set in data_sets]), np.mean([data[model][data_set] for data_set in data_sets]))
+        latex_string = latex_string + model[:15] + ' & ' + ' & '.join(['%0.3f' % data[model][data_set] for data_set in data_sets] + ['%0.3f' % np.mean([data[model][data_set] for data_set in data_sets])]) +  '\\\\\n'
     print latex_string
