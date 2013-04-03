@@ -50,7 +50,7 @@ def exp_param_defaults(exp_params):
                 'max_realtime_time' : 1, # In hours - integer
                 'release_realtime_cores' : True,
                 'local_computation' : True,
-                'thread_wait' : 5 # Sleep time between threads, to prevent excessive communication to cloud} 
+                'thread_wait' : 5} # Sleep time between threads, to prevent excessive communication to cloud} 
     # Iterate through default key-value pairs, setting all unset keys
     for key, value in defaults.iteritems():
         if not key in exp_params:
@@ -375,6 +375,7 @@ def run_experiment_file(filename, verbose=True):
         
     
     # Call a post processing routine to display output
-    postprocessing.print_all_AUCs(exp_params['results_dir'])
+    #postprocessing.print_all_AUCs(exp_params['results_dir'])
+    postprocessing.print_basic_summary(exp_params['results_dir'])
     print 'Wall clock time = %03.1f minutes' % ((time.time() - start) / 60)
 
