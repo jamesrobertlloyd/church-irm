@@ -758,6 +758,7 @@ Clearly the numbers are noisy, but they do not contradict the initial hypothesis
 
 I then extended the experiments to five fold cross validations.
 Thinking that many short chains gave an indication of performance I used 2 minutes and 100 restarts.
+
 \begin{table*}[ht!]
 \caption{{\small
 Additive and product IRMs - cold start - AUCs
@@ -787,6 +788,40 @@ It appears I have been tricked by earlier experiments into thinking that many re
 \item Sample for longer - will try a few things but a good way to waste money
 \item Reduce data set size to have a chance of mixing slightly - probably the best idea
 \item Revisit model design - probably best done in conjunction with smaller data sets
+\end{itemize}
+
+\section{More cold start 03-Apr-2013}
+
+Based (again) on some encouraging trial runs, I tried the experiment above with 20 minutes and 20 restarts.
+Have I been tricked again?
+
+\begin{table*}[ht!]
+\caption{{\small
+Additive and product IRMs - cold start - AUCs
+}}
+\label{tbl:IRM 03-Apr-2013}
+\begin{center}
+\begin{tabular}{c c | r | r r r r r | r}
+Type & D & Fold ? & Fold 1 & Fold 2 & Fold 3 & Fold 4 & Fold 5 & Average \\
+\hline
+A & 1 & 0.419 & 0.453 & 0.542 & 0.704 & 0.441 & 0.228 & 0.465\\
+A & 7 & 0.578 & 0.561 & 0.545 & 0.644 & 0.403 & 0.466 & 0.533\\
+P & 1 & 0.520 & 0.454 & 0.467 & 0.824 & 0.437 & 0.282 & 0.497\\
+P & 7 & 0.538 & 0.483 & 0.230 & 0.627 & 0.356 & 0.498 & 0.455\\
+\end{tabular}
+\end{center}
+\end{table*}
+
+It is tempting to think that patterns are emerging but it is far from clear.
+The additive and product models are following similar trends across the folds which is encouraging.
+
+Smaller data sets using cheaper cores with more model design is almost certainly the way to go.
+
+\subsection{Next steps}
+
+\begin{itemize}
+\item Reduce data set size to have a chance of mixing slightly
+\item Revisit model design
 \end{itemize}
 
 \newpage
