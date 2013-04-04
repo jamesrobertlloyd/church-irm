@@ -49,9 +49,10 @@ def refresh_data(ax):
 # Load high school data and concatenate
 #data = utils.data.load_network_cv_data('../../data/50_nodes/HighSchool_50.mat')
 #data = utils.data.load_network_cv_data('../../data/50_nodes/dolphins_50.mat')
-data = utils.data.load_network_cv_data('../../data/dolphin_full/dolphins.mat')
+#data = utils.data.load_network_cv_data('../../data/dolphin_full/dolphins.mat')
 #data = utils.data.load_network_cv_data('../../data/hs/hs_1of5.mat')
 #data = utils.data.load_network_cv_data('../../data/irm_prod_synth_size_test/prod_irm_2_90_synth.mat')
+data = utils.data.load_network_cv_data('../../data/full_networks/busyanuj.mat')
 data['observations'] = data['observations'] + data['missing']
 
 # Subset as necessary
@@ -118,7 +119,7 @@ show(block=False)
  # show the figure manager but don't block script execution so animation works..
 while True:
     #print 'Telling Venture to infer'
-    MyRIPL.infer(250)
+    MyRIPL.infer(100)
     #print 'Inference complete'
     clusters = [MyRIPL.report_value(node) for node in nodes]
     #print clusters
@@ -133,4 +134,3 @@ while True:
     refresh_data(ax)
     f.canvas.draw()
     count += 1
-    time.sleep(0.1)

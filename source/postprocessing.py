@@ -8,7 +8,7 @@ import models
 
 def print_all_AUCs(results_dir):
     # Loop over model folders
-    for model in sorted(os.listdir(results_dir)):
+    for model in [adir for adir in sorted(os.listdir(results_dir)) if os.path.isdir(os.path.join(results_dir, adir))]:
         for result in sorted(os.listdir(os.path.join(results_dir, model))):
             pickle_file = open(os.path.join(results_dir, model, result), 'rb')
             saved_results = pickle.load(pickle_file)
@@ -20,7 +20,7 @@ def print_all_AUCs(results_dir):
 def print_basic_summary(results_dir):
     # Loop over model folders
     total_runtime = 0
-    for model in sorted(os.listdir(results_dir)):
+    for model in [adir for adir in sorted(os.listdir(results_dir)) if os.path.isdir(os.path.join(results_dir, adir))]:
         for result in sorted(os.listdir(os.path.join(results_dir, model))):
             pickle_file = open(os.path.join(results_dir, model, result), 'rb')
             saved_results = pickle.load(pickle_file)
@@ -32,7 +32,7 @@ def print_basic_summary(results_dir):
 def print_stats(results_dir, fields=['ess', 'AUC']):
     # Loop over model folders
     total_runtime = 0
-    for model in sorted(os.listdir(results_dir)):
+    for model in [adir for adir in sorted(os.listdir(results_dir)) if os.path.isdir(os.path.join(results_dir, adir))]:
         for result in sorted(os.listdir(os.path.join(results_dir, model))):
             pickle_file = open(os.path.join(results_dir, model, result), 'rb')
             saved_results = pickle.load(pickle_file)
@@ -46,10 +46,10 @@ def print_stats(results_dir, fields=['ess', 'AUC']):
     
 def latex_AUC_table(results_dir):
     # Create a dictionary indexed by models and data sets - the produce latex table
-    models = sorted(os.listdir(results_dir))
+    models = [adir for adir in sorted(os.listdir(results_dir)) if os.path.isdir(os.path.join(results_dir, adir))]
     data_sets = []
     data = {}
-    for model in sorted(os.listdir(results_dir)):
+    for model in models:
         data[model] = {}
         local_data_sets = sorted(os.listdir(os.path.join(results_dir, model)))
         data_sets = sorted(list(set(data_sets) | set(local_data_sets)))

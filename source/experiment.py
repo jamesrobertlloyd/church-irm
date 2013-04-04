@@ -179,6 +179,13 @@ def network_cv_fold(data_file, data_dir, model_class, exp_params, model_params):
     with open(save_file_name, 'wb') as save_file:
         pickle.dump(overall_results, save_file, -1)
     return overall_results
+    
+def return_AUC(samples=None,truth=None):
+    predictions = list(samples.mean(axis=1))
+    roc_data = []
+    for (true_link, prediction) in zip(truth, predictions):
+        roc_data.append((true_link, prediction))
+    return ROCData(roc_data).auc()
 
 def cold_start_single_run(data, model_class, exp_params, model_params):
     '''Function to be sent to picloud'''
@@ -190,12 +197,12 @@ def cold_start_single_run(data, model_class, exp_params, model_params):
     # Burn in
     sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
                                          ids = missing_links, \
-                                         max_runtime=exp_params['max_burn_time'], verbose=False)
+                                         max_runtime=exp_params['max_burn_time'], verbose=True, callback=return_AUC, callback_kwargs={'truth':truth})
     # Collect samples
     max_memory = memory()
     mcmc_output = sample.collect_n_samples(model.RIPL, n=exp_params['n_samples'], mh_iter=exp_params['intermediate_iter'], \
                                                        ids = missing_links, \
-                                                       max_runtime=exp_params['max_sample_time'], verbose=False)
+                                                       max_runtime=exp_params['max_sample_time'], verbose=True, callback=return_AUC, callback_kwargs={'truth':truth})
     samples = mcmc_output['samples']
     n_samples = samples.shape[1]
     sample_ess = mcmc_output['ess']
@@ -230,12 +237,15 @@ def cold_start_fold(data_file, data_dir, model_class, exp_params, model_params):
     data = utils.data.load_cold_start_data(data_file)
     truth = data['truth']
     # Perform a timing run
-    if not exp_params['local_computation']:
-        job_id = cloud.call(cold_start_timing_run, data, model_class, exp_params, model_params, \
-                            _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
-        result = cloud.result(job_id)     
-    else:
-        result = cold_start_timing_run(data, model_class, exp_params, model_params)
+    job_id = cloud.call(cold_start_timing_run, data, model_class, exp_params, model_params, \
+                        _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+    result = cloud.result(job_id)  
+    #if not exp_params['local_computation']:
+    #    job_id = cloud.call(cold_start_timing_run, data, model_class, exp_params, model_params, \
+    #                        _max_runtime=3*exp_params['max_initial_run_time']/60, _env=cloud_environment, _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+    #    result = cloud.result(job_id)     
+    #else:
+    #    result = cold_start_timing_run(data, model_class, exp_params, model_params)
     runtime = result['runtime']    
     if not exp_params['local_computation']: 
         max_memory = cloud.info(job_id, ['memory'])[job_id]['memory.max_usage']
@@ -243,18 +253,26 @@ def cold_start_fold(data_file, data_dir, model_class, exp_params, model_params):
         max_memory = result['max_memory']            
     # Map random restarts to picloud
     exp_params['intermediate_iter'] = max(1, int(round(0.9 * exp_params['max_sample_time'] / (exp_params['n_samples'] * result['time_per_mh_iter']))))
-    if not exp_params['local_computation']:
-        job_ids = cloud.map(cold_start_single_run, itertools.repeat(data, exp_params['n_restarts']), \
-                                                   itertools.repeat(model_class, exp_params['n_restarts']), \
-                                                   itertools.repeat(exp_params, exp_params['n_restarts']), \
-                                                   itertools.repeat(model_params, exp_params['n_restarts']), \
-                                                   _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
-                                                   _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
-        # Collate results
-        results = cloud.result(job_ids, ignore_errors=True)
-    else:
-        print 'Performing true runs'
-        results = [cold_start_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
+    job_ids = cloud.map(cold_start_single_run, itertools.repeat(data, exp_params['n_restarts']), \
+                                               itertools.repeat(model_class, exp_params['n_restarts']), \
+                                               itertools.repeat(exp_params, exp_params['n_restarts']), \
+                                               itertools.repeat(model_params, exp_params['n_restarts']), \
+                                               _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
+                                               _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+    # Collate results
+    results = cloud.result(job_ids, ignore_errors=True)
+    #if not exp_params['local_computation']:
+    #    job_ids = cloud.map(cold_start_single_run, itertools.repeat(data, exp_params['n_restarts']), \
+    #                                               itertools.repeat(model_class, exp_params['n_restarts']), \
+    #                                               itertools.repeat(exp_params, exp_params['n_restarts']), \
+    #                                               itertools.repeat(model_params, exp_params['n_restarts']), \
+    #                                               _max_runtime=2*(exp_params['max_burn_time']+exp_params['max_sample_time'])/60, _env=cloud_environment, \
+    #                                               _type=exp_params['core_type'], _cores=exp_params['cores_per_job'])
+    #    # Collate results
+    #    results = cloud.result(job_ids, ignore_errors=True)
+    #else:
+    #    print 'Performing true runs'
+    #    results = [cold_start_single_run(data, model_class, exp_params, model_params) for dummy in range(exp_params['n_restarts'])]
     ess_sum = 0
     first_result = True
     for i, result in enumerate(results):
@@ -309,8 +327,8 @@ def run_experiment_file(filename, verbose=True):
         
     # Spin up realtime cores if desired or set simulator mode
     if exp_params['local_computation']:
-        pass
-        #cloud.start_simulator()
+        #pass
+        cloud.start_simulator()
     elif exp_params['use_realtime_cores']:
         if verbose:
             print 'Requesting realtime cores'
@@ -341,18 +359,21 @@ def run_experiment_file(filename, verbose=True):
                             # Threads upset Venture it would appear
                             network_cv_fold(data_file, data_dir, model, exp_params, model_params)
                     elif exp_params['type'] == 'cold_start':
-                        if not exp_params['local_computation']:
-                            threads.append(threading.Thread(target=cold_start_fold, args=(data_file, data_dir, model, exp_params, model_params)))
-                            threads[-1].start()
-                            time.sleep(exp_params['thread_wait'])
-                        else:
-                            # Threads upset Venture it would appear
-                            cold_start_fold(data_file, data_dir, model, exp_params, model_params)
+                        threads.append(threading.Thread(target=cold_start_fold, args=(data_file, data_dir, model, exp_params, model_params)))
+                        threads[-1].start()
+                        time.sleep(exp_params['thread_wait'])
+                        #if not exp_params['local_computation']:
+                        #    threads.append(threading.Thread(target=cold_start_fold, args=(data_file, data_dir, model, exp_params, model_params)))
+                        #    threads[-1].start()
+                        #    time.sleep(exp_params['thread_wait'])
+                        #else:
+                        #    # Threads upset Venture it would appear
+                        #    cold_start_fold(data_file, data_dir, model, exp_params, model_params)
                         
         if verbose:
             print 'Number of child threads = %d' % len(threads)
           
-        if not exp_params['local_computation']:        
+        if True:#not exp_params['local_computation']:        
             # Wait for threads to complete
             time.sleep(10) # Avoid race conditions
             threads_finished = [False] * len(threads)

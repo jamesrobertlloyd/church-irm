@@ -103,7 +103,7 @@ def estimate_mh_time(RIPL, n, initial_mh_iter, ids, max_runtime=600, verbose=Tru
     max_mem = max(max_mem, memory())
     return {'time_per_mh_iter' : time_per_mh_iter, 'max_memory' : max_mem}
 
-def collect_n_samples(RIPL, n, mh_iter, ids, max_runtime=600, verbose=True):
+def collect_n_samples(RIPL, n, mh_iter, ids, max_runtime=600, verbose=True, callback=None, callback_kwargs={}):
     '''Tries to collect n samples before timeout'''
     samples = np.zeros((len(ids), 0))
     experiment_start = time.clock()
@@ -114,10 +114,10 @@ def collect_n_samples(RIPL, n, mh_iter, ids, max_runtime=600, verbose=True):
             # Sample
             iteration += 1
             RIPL.infer(mh_iter)
-            if verbose:
-                print 'Iteration %d' % iteration
             # Record sample
             samples = np.column_stack([samples, [RIPL.report_value(an_id) for an_id in ids]])
+            if verbose:
+                print 'Iteration %d : Score %s' % (iteration, callback(samples=samples, **callback_kwargs))
         else:
             break
     finish = time.clock()

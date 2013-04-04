@@ -2,7 +2,7 @@ seed=1; % fixing the seed of the random generators
 randn('state',seed);
 rand('state',seed);
 
-directory = '../../data/raw/';
+directory = '../../data/temp/';
 
 %n = 50;
 fold_directory = '../../data/full_networks/';
