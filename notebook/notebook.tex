@@ -842,7 +842,7 @@ A & 1 & 0.216 & 0.333 & 0.387 & 0.337 & 0.318\\
 A & 2 & 0.054 & 0.389 & 0.742 & 0.304 & 0.372\\
 A & 3 & 0.270 & 0.444 & 0.435 & 0.380 & 0.383\\
 A & 4 & 0.108 & 0.111 & 0.484 & 0.431 & 0.284\\
-A & 5 & 0.081 & 0.222 & 0.476 & 0.304 & 0.271\\
+A & 5 & 0.081 & 0.222 & 0.476 & 0.304 & 0.271
 \end{tabular}
 \end{center}
 \end{table*}
@@ -856,6 +856,31 @@ Results are still very high variance.
 \item Stop using Venture?
 \item Try 30, 40, 50 node networks?
 \end{itemize}
+
+\section{Repeat of cold start 04-Apr-2013}
+
+20 node egocentric network data.
+5 restarts (quite a few random failures though), 60 minutes of sampling.
+
+\begin{table*}[ht!]
+\caption{{\small
+Additive IRMs - cold start - AUCs
+}}
+\label{tbl:IRM 04-Apr-2013v02}
+\begin{center}
+\begin{tabular}{c c | r r r r | r}
+Type & D & Batmanchasm & artagnon & paperdre4m & yosefyah & Average \\
+\hline
+A & 1 & 0.189 & 0.444 & 0.387 & 0.348 & 0.342\\
+A & 2 & 0.189 & 0.500 & 0.581 & 0.279 & 0.387\\
+A & 3 & 0.135 & 0.444 & 0.742 & 0.424 & 0.436\\
+A & 4 & 0.216 & 0.278 & 0.581 & 0.442 & 0.379\\
+A & 5 & 0.108 & 0.500 & 0.694 & 0.322 & 0.406
+\end{tabular}
+\end{center}
+\end{table*}
+
+This seems to be confirming high variance.
 
 \newpage
 
